@@ -16,11 +16,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'CAS_FORMFLOW_VERSION', '0.1.0' );
-define( 'CAS_FORMFLOW_DB_VERSION', '1.0.0' );
-define( 'CAS_FORMFLOW_FILE', __FILE__ );
-define( 'CAS_FORMFLOW_PATH', plugin_dir_path( __FILE__ ) );
-define( 'CAS_FORMFLOW_URL', plugin_dir_url( __FILE__ ) );
+define( 'CAS_FORMFLOW_PLUGIN_FILE', __FILE__ );
+define( 'CAS_FORMFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'CAS_FORMFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-require_once CAS_FORMFLOW_PATH . 'includes/class-cas-formflow-activator.php';
+require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-plugin.php';
 
-register_activation_hook( CAS_FORMFLOW_FILE, array( 'CAS_FormFlow_Activator', 'activate' ) );
+function cas_formflow_run_plugin(): void {
+	$plugin = new CAS_FormFlow_Plugin();
+	$plugin->run();
+}
+
+cas_formflow_run_plugin();
