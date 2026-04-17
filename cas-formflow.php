@@ -12,46 +12,15 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
-if ( ! defined( 'CAS_FORMFLOW_VERSION' ) ) {
-    define( 'CAS_FORMFLOW_VERSION', '0.1.0' );
-}
+define( 'CAS_FORMFLOW_VERSION', '0.1.0' );
+define( 'CAS_FORMFLOW_DB_VERSION', '1.0.0' );
+define( 'CAS_FORMFLOW_FILE', __FILE__ );
+define( 'CAS_FORMFLOW_PATH', plugin_dir_path( __FILE__ ) );
+define( 'CAS_FORMFLOW_URL', plugin_dir_url( __FILE__ ) );
 
-if ( ! defined( 'CAS_FORMFLOW_FILE' ) ) {
-    define( 'CAS_FORMFLOW_FILE', __FILE__ );
-}
+require_once CAS_FORMFLOW_PATH . 'includes/class-cas-formflow-activator.php';
 
-if ( ! defined( 'CAS_FORMFLOW_BASENAME' ) ) {
-    define( 'CAS_FORMFLOW_BASENAME', plugin_basename( CAS_FORMFLOW_FILE ) );
-}
-
-if ( ! defined( 'CAS_FORMFLOW_PATH' ) ) {
-    define( 'CAS_FORMFLOW_PATH', plugin_dir_path( CAS_FORMFLOW_FILE ) );
-}
-
-if ( ! defined( 'CAS_FORMFLOW_URL' ) ) {
-    define( 'CAS_FORMFLOW_URL', plugin_dir_url( CAS_FORMFLOW_FILE ) );
-}
-
-if ( ! defined( 'CAS_FORMFLOW_INC_PATH' ) ) {
-    define( 'CAS_FORMFLOW_INC_PATH', CAS_FORMFLOW_PATH . 'includes/' );
-}
-
-if ( ! defined( 'CAS_FORMFLOW_ASSETS_URL' ) ) {
-    define( 'CAS_FORMFLOW_ASSETS_URL', CAS_FORMFLOW_URL . 'assets/' );
-}
-
-require_once CAS_FORMFLOW_INC_PATH . 'class-cas-formflow.php';
-
-/**
- * Boots the plugin.
- *
- * @return CAS_FormFlow
- */
-function cas_formflow() {
-    return CAS_FormFlow::get_instance();
-}
-
-add_action( 'plugins_loaded', 'cas_formflow' );
+register_activation_hook( CAS_FORMFLOW_FILE, array( 'CAS_FormFlow_Activator', 'activate' ) );

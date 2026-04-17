@@ -8,13 +8,24 @@ CAS FormFlow is a modular plugin that provides a flexible multi-step contact for
 
 The plugin is designed following WordPress best practices with a focus on scalability, maintainability, and clean code structure.
 
-## Features
+## Current Status
 
-* Multi-step contact form
-* Server-side validation
-* Lead storage in a custom database table
-* Admin panel for managing submissions
-* Extendable architecture for integrations (Telegram, Google Sheets, etc.)
+The plugin is under active development.
+
+Implemented so far:
+
+- Plugin scaffold and structure
+- Activation hook
+- Custom database table creation (via dbDelta)
+- Database versioning system (option-based)
+
+## Planned Features
+
+- Multi-step contact form
+- Server-side validation
+- Lead storage and processing
+- Admin panel for managing submissions
+- Integrations (Telegram, Google Sheets, etc.)
 
 ## Installation
 
@@ -23,13 +34,7 @@ The plugin is designed following WordPress best practices with a focus on scalab
 
 ## Usage
 
-The form can be embedded into any page or post using the shortcode:
-
-```
-[cas_contact_form]
-```
-
-Create a page, paste the shortcode into the content, and publish it.
+(Will be available in upcoming steps)
 
 ## Development Environment
 
@@ -41,10 +46,10 @@ Create a page, paste the shortcode into the content, and publish it.
 
 The following AI tools were used during development:
 
-- ChatGPT (GPT Plus) — for architecture planning, problem-solving, and refining implementation approaches
-- Codex (VS Code) — for assisting with code generation and speeding up routine development tasks
+- ChatGPT (GPT Plus) — architecture planning, debugging, and implementation guidance
+- Codex (VS Code) — code generation and development acceleration
 
-All generated code was reviewed, tested, and adjusted manually
+All generated code was reviewed, tested, and manually refined.
 
 ## Author
 
