@@ -33,6 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<div class="card-body p-4">
 								<h2 class="cas-formflow-step-title h6 fw-bold mb-1" id="cas-formflow-step-1-title">Personal info</h2>
 								<p class="cas-formflow-step-description text-secondary small mb-3">Step 1 of 3</p>
+								<p class="cas-formflow-step-alert alert alert-danger small mb-3" role="alert" aria-live="polite" hidden></p>
 
 								<div class="row g-3">
 									<div class="cas-formflow-field col-12 col-sm-6">
@@ -44,8 +45,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 											name="first_name"
 											placeholder="John"
 											autocomplete="given-name"
+											data-error-required="Enter your first name."
 											required
 										>
+										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-first-name-error" aria-live="polite" hidden></p>
 									</div>
 
 									<div class="cas-formflow-field col-12 col-sm-6">
@@ -57,8 +60,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 											name="last_name"
 											placeholder="Doe"
 											autocomplete="family-name"
+											data-error-required="Enter your last name."
 											required
 										>
+										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-last-name-error" aria-live="polite" hidden></p>
 									</div>
 
 									<div class="cas-formflow-field col-12">
@@ -70,8 +75,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 											name="email"
 											placeholder="john@example.com"
 											autocomplete="email"
+											data-error-required="Enter your email address."
+											data-error-type="Enter a valid email address."
 											required
 										>
+										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-email-error" aria-live="polite" hidden></p>
 									</div>
 
 									<div class="cas-formflow-field col-12">
@@ -83,8 +91,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 											name="phone"
 											placeholder="+380 (XX) XXX-XX-XX"
 											autocomplete="tel"
+											inputmode="tel"
+											pattern="^[0-9+\(\) .\-]{7,20}$"
+											data-error-required="Enter your phone number."
+											data-error-pattern="Use 7-20 digits and phone symbols only."
 											required
 										>
+										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-phone-error" aria-live="polite" hidden></p>
 									</div>
 
 									<div class="cas-formflow-field col-12">
@@ -95,6 +108,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 											id="cas-date-of-birth"
 											name="date_of_birth"
 										>
+										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-date-of-birth-error" aria-live="polite" hidden></p>
 									</div>
 								</div>
 
@@ -112,6 +126,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<div class="card-body p-4">
 								<h2 class="cas-formflow-step-title h6 fw-bold mb-1" id="cas-formflow-step-2-title">Address</h2>
 								<p class="cas-formflow-step-description text-secondary small mb-3">Step 2 of 3</p>
+								<p class="cas-formflow-step-alert alert alert-danger small mb-3" role="alert" aria-live="polite" hidden></p>
 
 								<div class="cas-formflow-field mb-3">
 									<label class="cas-formflow-label form-label small mb-1" for="cas-country">Country *</label>
@@ -119,6 +134,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 										class="cas-formflow-input cas-formflow-select form-select form-select-sm"
 										id="cas-country"
 										name="country"
+										autocomplete="country-name"
+										data-error-required="Select your country."
 										required
 									>
 										<option value="">Select country...</option>
@@ -128,6 +145,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 										<option value="Germany">Germany</option>
 										<option value="Poland">Poland</option>
 									</select>
+									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-country-error" aria-live="polite" hidden></p>
 								</div>
 
 								<div class="cas-formflow-field mb-3">
@@ -139,8 +157,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 										name="city"
 										placeholder="Odesa"
 										autocomplete="address-level2"
+										data-error-required="Enter your city."
 										required
 									>
+									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-city-error" aria-live="polite" hidden></p>
 								</div>
 
 								<div class="cas-formflow-field mb-3">
@@ -153,6 +173,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 										placeholder="123 Main St, Apt 4"
 										autocomplete="street-address"
 									>
+									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-street-address-error" aria-live="polite" hidden></p>
 								</div>
 
 								<div class="cas-formflow-field mb-3">
@@ -165,6 +186,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 										placeholder="65000"
 										autocomplete="postal-code"
 									>
+									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-postal-code-error" aria-live="polite" hidden></p>
 								</div>
 
 								<div class="cas-formflow-actions d-flex justify-content-between gap-2 mt-3">
@@ -185,6 +207,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<div class="card-body p-4">
 								<h2 class="cas-formflow-step-title h6 fw-bold mb-1" id="cas-formflow-step-3-title">Confirmation</h2>
 								<p class="cas-formflow-step-description text-secondary small mb-3">Step 3 of 3</p>
+								<p class="cas-formflow-step-alert alert alert-danger small mb-3" role="alert" aria-live="polite" hidden></p>
 
 								<div class="cas-formflow-checkbox form-check mb-2">
 									<input
@@ -193,11 +216,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 										id="cas-terms"
 										name="terms"
 										value="1"
+										data-error-required="Accept the Terms and Conditions to continue."
 										required
 									>
 									<label class="cas-formflow-checkbox-label form-check-label small" for="cas-terms">
 										I agree to the <a href="#" class="cas-formflow-link link-secondary">Terms and Conditions</a> *
 									</label>
+									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-terms-error" aria-live="polite" hidden></p>
 								</div>
 
 								<div class="cas-formflow-checkbox form-check mb-3">
@@ -211,6 +236,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 									<label class="cas-formflow-checkbox-label form-check-label small" for="cas-newsletter">
 										Subscribe to newsletter
 									</label>
+									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-newsletter-error" aria-live="polite" hidden></p>
 								</div>
 
 								<div class="cas-formflow-actions d-flex justify-content-between gap-2 mt-3">

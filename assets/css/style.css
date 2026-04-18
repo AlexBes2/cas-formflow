@@ -1,9 +1,6 @@
 .cas-formflow {
-	--cas-formflow-blue: #2f87de;
-	--cas-formflow-bg: #f7f7f3;
-
 	max-width: 720px;
-	background: var(--cas-formflow-bg);
+	background: var(--bs-tertiary-bg);
 }
 
 .cas-formflow-progress {
@@ -45,13 +42,18 @@
 
 .cas-formflow-progress-item.is-active .cas-formflow-progress-number,
 .cas-formflow-progress-item.is-complete .cas-formflow-progress-number {
-	background: var(--cas-formflow-blue);
+	background: var(--bs-primary);
+	color: #ffffff;
+}
+
+.cas-formflow-progress-item.has-error .cas-formflow-progress-number {
+	background: var(--bs-danger);
 	color: #ffffff;
 }
 
 .cas-formflow-progress-item.is-active:not(:last-child)::after,
 .cas-formflow-progress-item.is-complete:not(:last-child)::after {
-	background: var(--cas-formflow-blue);
+	background: var(--bs-primary);
 }
 
 .cas-formflow-step[hidden] {
@@ -60,6 +62,24 @@
 
 .cas-formflow-step-inner {
 	border-radius: 0.5rem;
+}
+
+.cas-formflow-step-alert {
+	border-radius: 0.5rem;
+}
+
+.cas-formflow-error:not([hidden]) {
+	display: block;
+}
+
+.cas-formflow-checkbox .cas-formflow-error {
+	margin-left: -1.5em;
+	padding-left: 1.5em;
+}
+
+.cas-formflow-field.has-error .cas-formflow-label,
+.cas-formflow-checkbox.has-error .cas-formflow-checkbox-label {
+	color: var(--bs-danger);
 }
 
 .cas-formflow-button {
