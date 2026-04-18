@@ -30,6 +30,7 @@ class CAS_FormFlow_Plugin {
 	 */
 	private function load_dependencies(): void {
 		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow.php';
+		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-ajax.php';
 		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-shortcode.php';
 	}
 
@@ -48,6 +49,9 @@ class CAS_FormFlow_Plugin {
 	 * @return void
 	 */
 	private function register_components(): void {
+		$ajax = new CAS_FormFlow_Ajax();
+		$ajax->register();
+
 		$shortcode = new CAS_FormFlow_Shortcode();
 		$shortcode->register();
 	}
@@ -101,6 +105,12 @@ class CAS_FormFlow_Plugin {
 			array(),
 			CAS_FORMFLOW_VERSION,
 			true
+		);
+
+		wp_localize_script(
+			'cas-formflow-script',
+			'casFormflow',
+			CAS_FormFlow_Ajax::get_frontend_config()
 		);
 	}
 }

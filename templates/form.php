@@ -14,6 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="row justify-content-center">
 		<div class="col-12">
 			<form class="cas-formflow-form" method="post" action="" novalidate>
+				<p
+					class="cas-formflow-submit-alert alert small mb-3"
+					role="alert"
+					aria-live="polite"
+					hidden
+				></p>
+
 				<ol class="cas-formflow-progress mb-3" aria-label="Form progress">
 					<li class="cas-formflow-progress-item is-active" data-progress-step="1" aria-current="step">
 						<span class="cas-formflow-progress-number">1</span>

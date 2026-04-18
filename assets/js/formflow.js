@@ -3,6 +3,7 @@
 
 	var FIELD_SELECTOR = 'input, select, textarea';
 	var STEP_ERROR_MESSAGE = 'Please fix the highlighted fields before continuing.';
+	var SUBMIT_ERROR_MESSAGE = 'Could not submit the form. Please try again.';
 
 	function getFocusableField(step) {
 		return step.querySelector(FIELD_SELECTOR + ', button');
@@ -246,6 +247,139 @@
 		}
 	}
 
+	function getAjaxConfig() {
+		return window.casFormflow || {};
+	}
+
+	function setSubmitAlert(form, type, message) {
+		var alert = form.querySelector('.cas-formflow-submit-alert');
+
+		if (!alert) {
+			return;
+		}
+
+		alert.textContent = message || '';
+		alert.hidden = !message;
+		alert.classList.toggle('alert-success', type === 'success');
+		alert.classList.toggle('alert-danger', type === 'error');
+	}
+
+	function setSubmitLoading(form, isLoading) {
+		var submitButton = form.querySelector('.cas-formflow-button-submit');
+
+		if (!submitButton) {
+			return;
+		}
+
+		if (!submitButton.getAttribute('data-cas-label')) {
+			submitButton.setAttribute('data-cas-label', submitButton.textContent.trim());
+		}
+
+		submitButton.disabled = isLoading;
+		submitButton.textContent = isLoading
+			? 'Submitting...'
+			: submitButton.getAttribute('data-cas-label');
+	}
+
+	function resetFormState(form, steps, progressItems) {
+		getStepFields(form).forEach(function (field) {
+			field.removeAttribute('data-cas-validated');
+			setFieldError(field, '');
+		});
+
+		steps.forEach(function (step) {
+			setStepAlert(step, 0);
+		});
+
+		progressItems.forEach(function (item) {
+			item.classList.remove('has-error');
+		});
+	}
+
+	function applyServerErrors(form, errors) {
+		var firstErrorField = null;
+
+		if (!errors || typeof errors !== 'object') {
+			return firstErrorField;
+		}
+
+		Object.keys(errors).forEach(function (fieldName) {
+			var field = form.elements[fieldName];
+
+			if (field instanceof HTMLElement) {
+				field.setAttribute('data-cas-validated', 'true');
+				setFieldError(field, errors[fieldName]);
+
+				if (!firstErrorField) {
+					firstErrorField = field;
+				}
+			}
+		});
+
+		return firstErrorField;
+	}
+
+	function submitForm(form) {
+		var config = getAjaxConfig();
+		var formData = new FormData(form);
+
+		if (!config.ajaxUrl || !config.action || !config.nonce) {
+			setSubmitAlert(form, 'error', SUBMIT_ERROR_MESSAGE);
+			return Promise.resolve({
+				firstErrorField: null,
+				isSubmitted: false,
+			});
+		}
+
+		formData.append('action', config.action);
+		formData.append('nonce', config.nonce);
+
+		setSubmitAlert(form, '', '');
+		setSubmitLoading(form, true);
+
+		return fetch(config.ajaxUrl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: formData,
+		})
+			.then(function (response) {
+				return response.json().catch(function () {
+					throw new Error(SUBMIT_ERROR_MESSAGE);
+				});
+			})
+			.then(function (payload) {
+				var data = payload && payload.data ? payload.data : {};
+				var message = data.message || SUBMIT_ERROR_MESSAGE;
+				var firstErrorField = null;
+
+				if (!payload || !payload.success) {
+					firstErrorField = applyServerErrors(form, data.errors);
+					setSubmitAlert(form, 'error', message);
+					return {
+						firstErrorField: firstErrorField,
+						isSubmitted: false,
+					};
+				}
+
+				form.reset();
+				setSubmitAlert(form, 'success', message);
+				return {
+					firstErrorField: null,
+					isSubmitted: true,
+				};
+			})
+			.catch(function () {
+				setSubmitAlert(form, 'error', SUBMIT_ERROR_MESSAGE);
+				return {
+					firstErrorField: null,
+					isSubmitted: false,
+				};
+			})
+			.finally(function () {
+				setSubmitLoading(form, false);
+			});
+	}
+
 	function initFormflow(formflow) {
 		var form = formflow.querySelector('.cas-formflow-form');
 		var steps = Array.prototype.slice.call(
@@ -350,6 +484,9 @@
 			form.addEventListener('submit', function (event) {
 				var firstInvalidStepIndex = -1;
 
+				event.preventDefault();
+				setSubmitAlert(form, '', '');
+
 				steps.forEach(function (step, index) {
 					var isValid = validateStep(step, false);
 
@@ -361,10 +498,32 @@
 				});
 
 				if (firstInvalidStepIndex >= 0) {
-					event.preventDefault();
 					activeIndex = firstInvalidStepIndex;
 					setActiveStep(steps, progressItems, activeIndex, true);
+					return;
 				}
+
+				submitForm(form).then(function (result) {
+					if (result.isSubmitted) {
+						resetFormState(form, steps, progressItems);
+						activeIndex = 0;
+						setActiveStep(steps, progressItems, activeIndex, false);
+						return;
+					}
+
+					if (result.firstErrorField) {
+						activeIndex = steps.indexOf(
+							result.firstErrorField.closest('.cas-formflow-step')
+						);
+
+						if (activeIndex >= 0) {
+							setStepAlert(steps[activeIndex], 1);
+							updateProgressErrorState(progressItems, activeIndex, true);
+							setActiveStep(steps, progressItems, activeIndex, false);
+							result.firstErrorField.focus();
+						}
+					}
+				});
 			});
 		}
 	}
