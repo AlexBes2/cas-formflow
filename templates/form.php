@@ -8,6 +8,13 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+$cas_formflow_min_age        = CAS_FORMFLOW_MIN_AGE;
+$cas_formflow_birth_date_min = CAS_FORMFLOW_MIN_DATE_OF_BIRTH;
+$cas_formflow_birth_date_max = wp_date(
+	'Y-m-d',
+	strtotime( '-' . $cas_formflow_min_age . ' years', current_time( 'timestamp' ) )
+);
 ?>
 
 <div class="cas-formflow container my-5 py-4 px-3 px-sm-4" data-cas-formflow>
@@ -114,6 +121,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 											type="date"
 											id="cas-date-of-birth"
 											name="date_of_birth"
+											min="<?php echo esc_attr( $cas_formflow_birth_date_min ); ?>"
+											max="<?php echo esc_attr( $cas_formflow_birth_date_max ); ?>"
+											data-error-invalid="Enter a valid date of birth."
+											data-error-min="Enter a valid date of birth."
+											data-error-max="You must be at least <?php echo esc_attr( (string) $cas_formflow_min_age ); ?> years old."
 										>
 										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-date-of-birth-error" aria-live="polite" hidden></p>
 									</div>

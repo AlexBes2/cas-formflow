@@ -70,6 +70,10 @@
 			return getFieldMessage(field, 'required', 'This field is required.');
 		}
 
+		if (validity.badInput) {
+			return getFieldMessage(field, 'invalid', 'Enter a valid value.');
+		}
+
 		if (validity.typeMismatch) {
 			return getFieldMessage(field, 'type', 'Enter a valid value.');
 		}
@@ -354,7 +358,13 @@
 
 				if (!payload || !payload.success) {
 					firstErrorField = applyServerErrors(form, data.errors);
-					setSubmitAlert(form, 'error', message);
+
+					if (firstErrorField) {
+						setSubmitAlert(form, '', '');
+					} else {
+						setSubmitAlert(form, 'error', message);
+					}
+
 					return {
 						firstErrorField: firstErrorField,
 						isSubmitted: false,

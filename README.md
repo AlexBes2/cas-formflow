@@ -18,12 +18,13 @@ Implemented so far:
 - Activation hook
 - Custom database table creation (via dbDelta)
 - Database versioning system (option-based)
+- Multi-step frontend form
+- AJAX submission with nonce protection
+- Server-side sanitization and validation
+- Lead storage in the custom submissions table
 
 ## Planned Features
 
-- Multi-step contact form
-- Server-side validation
-- Lead storage and processing
 - Admin panel for managing submissions
 - Integrations (Telegram, Google Sheets, etc.)
 
@@ -34,7 +35,7 @@ Implemented so far:
 
 ## Usage
 
-(Will be available in upcoming steps)
+Add the `[cas_contact_form]` shortcode to a WordPress page or post.
 
 ## Development Environment
 

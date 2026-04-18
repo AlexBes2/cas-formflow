@@ -14,6 +14,37 @@ class CAS_FormFlow_Ajax {
 	private const ACTION = 'cas_formflow_submit';
 	private const NONCE_ACTION = 'cas_formflow_submit';
 	private const NONCE_FIELD = 'nonce';
+	private const TABLE_NAME = 'cas_formflow_submissions';
+
+	private const REQUIRED_FIELDS = array(
+		'first_name',
+		'last_name',
+		'email',
+		'phone',
+		'country',
+		'city',
+		'terms',
+	);
+
+	private const FIELD_MAX_LENGTHS = array(
+		'first_name'     => 191,
+		'last_name'      => 191,
+		'email'          => 191,
+		'phone'          => 50,
+		'date_of_birth'  => 10,
+		'country'        => 100,
+		'city'           => 100,
+		'street_address' => 191,
+		'postal_code'    => 20,
+	);
+
+	private const ALLOWED_COUNTRIES = array(
+		'Ukraine',
+		'United States',
+		'United Kingdom',
+		'Germany',
+		'Poland',
+	);
 
 	/**
 	 * Register AJAX hooks.
@@ -53,7 +84,9 @@ class CAS_FormFlow_Ajax {
 			);
 		}
 
-		$data   = $this->sanitize_submission( wp_unslash( $_POST ) );
+		$data = $this->sanitize_submission(
+			wp_unslash( $_POST ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		);
 		$errors = $this->validate_submission( $data );
 
 		if ( ! empty( $errors ) ) {
@@ -66,39 +99,9 @@ class CAS_FormFlow_Ajax {
 			);
 		}
 
-		global $wpdb;
+		$submission_id = $this->save_submission( $data );
 
-		$table_name  = $wpdb->prefix . 'cas_formflow_submissions';
-		$description = wp_json_encode(
-			array(
-				'last_name'      => $data['last_name'],
-				'date_of_birth'  => $data['date_of_birth'],
-				'country'        => $data['country'],
-				'city'           => $data['city'],
-				'street_address' => $data['street_address'],
-				'postal_code'    => $data['postal_code'],
-				'terms'          => $data['terms'],
-				'newsletter'     => $data['newsletter'],
-			)
-		);
-
-		if ( false === $description ) {
-			$description = '';
-		}
-
-		$inserted = $wpdb->insert(
-			$table_name,
-			array(
-				'first_name'  => $data['first_name'],
-				'phone'       => $data['phone'],
-				'email'       => $data['email'],
-				'description' => $description,
-				'created_at'  => current_time( 'mysql' ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s' )
-		);
-
-		if ( false === $inserted ) {
+		if ( 0 === $submission_id ) {
 			wp_send_json_error(
 				array(
 					'message' => __( 'Could not save your submission. Please try again.', 'cas-formflow' ),
@@ -109,7 +112,8 @@ class CAS_FormFlow_Ajax {
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'Thank you. Your submission has been received.', 'cas-formflow' ),
+				'message'      => __( 'Thank you. Your submission has been received.', 'cas-formflow' ),
+				'submissionId' => $submission_id,
 			)
 		);
 	}
@@ -124,15 +128,15 @@ class CAS_FormFlow_Ajax {
 		return array(
 			'first_name'     => sanitize_text_field( $this->get_raw_input( $input, 'first_name' ) ),
 			'last_name'      => sanitize_text_field( $this->get_raw_input( $input, 'last_name' ) ),
-			'email'          => sanitize_email( $this->get_raw_input( $input, 'email' ) ),
+			'email'          => strtolower( sanitize_email( $this->get_raw_input( $input, 'email' ) ) ),
 			'phone'          => sanitize_text_field( $this->get_raw_input( $input, 'phone' ) ),
 			'date_of_birth'  => sanitize_text_field( $this->get_raw_input( $input, 'date_of_birth' ) ),
 			'country'        => sanitize_text_field( $this->get_raw_input( $input, 'country' ) ),
 			'city'           => sanitize_text_field( $this->get_raw_input( $input, 'city' ) ),
 			'street_address' => sanitize_text_field( $this->get_raw_input( $input, 'street_address' ) ),
 			'postal_code'    => sanitize_text_field( $this->get_raw_input( $input, 'postal_code' ) ),
-			'terms'          => ! empty( $input['terms'] ) ? '1' : '',
-			'newsletter'     => ! empty( $input['newsletter'] ) ? '1' : '',
+			'terms'          => $this->get_checkbox_value( $input, 'terms' ),
+			'newsletter'     => $this->get_checkbox_value( $input, 'newsletter' ),
 		);
 	}
 
@@ -148,7 +152,22 @@ class CAS_FormFlow_Ajax {
 			return '';
 		}
 
-		return (string) $input[ $key ];
+		return trim( (string) $input[ $key ] );
+	}
+
+	/**
+	 * Get a normalized checkbox value.
+	 *
+	 * @param array<string, mixed> $input Request payload.
+	 * @param string               $key Payload key.
+	 * @return string
+	 */
+	private function get_checkbox_value( array $input, string $key ): string {
+		if ( ! isset( $input[ $key ] ) || is_array( $input[ $key ] ) ) {
+			return '';
+		}
+
+		return '1' === (string) $input[ $key ] ? '1' : '';
 	}
 
 	/**
@@ -160,17 +179,47 @@ class CAS_FormFlow_Ajax {
 	private function validate_submission( array $data ): array {
 		$errors = array();
 
-		foreach ( array( 'first_name', 'last_name', 'phone', 'country', 'city' ) as $field ) {
-			if ( '' === $data[ $field ] ) {
+		foreach ( self::REQUIRED_FIELDS as $field ) {
+			if ( empty( $data[ $field ] ) ) {
 				$errors[ $field ] = __( 'This field is required.', 'cas-formflow' );
 			}
 		}
 
-		if ( '' === $data['email'] || ! is_email( $data['email'] ) ) {
+		foreach ( self::FIELD_MAX_LENGTHS as $field => $max_length ) {
+			if ( ! empty( $data[ $field ] ) && strlen( (string) $data[ $field ] ) > $max_length ) {
+				$errors[ $field ] = sprintf(
+					/* translators: %d: maximum number of characters. */
+					__( 'Use %d characters or fewer.', 'cas-formflow' ),
+					$max_length
+				);
+			}
+		}
+
+		if ( '' !== $data['email'] && ! is_email( $data['email'] ) ) {
 			$errors['email'] = __( 'Enter a valid email address.', 'cas-formflow' );
 		}
 
-		if ( '' === $data['terms'] ) {
+		if ( '' !== $data['country'] && ! in_array( $data['country'], self::ALLOWED_COUNTRIES, true ) ) {
+			$errors['country'] = __( 'Select a valid country.', 'cas-formflow' );
+		}
+
+		if ( '' !== $data['date_of_birth'] ) {
+			$date_of_birth = (string) $data['date_of_birth'];
+
+			if ( ! $this->is_valid_date_of_birth( $date_of_birth ) ) {
+				$errors['date_of_birth'] = __( 'Enter a valid date of birth.', 'cas-formflow' );
+			} elseif ( $date_of_birth > $this->get_max_date_of_birth() ) {
+				$errors['date_of_birth'] = sprintf(
+					/* translators: %d: minimum age in years. */
+					__( 'You must be at least %d years old.', 'cas-formflow' ),
+					CAS_FORMFLOW_MIN_AGE
+				);
+			} elseif ( $date_of_birth < CAS_FORMFLOW_MIN_DATE_OF_BIRTH ) {
+				$errors['date_of_birth'] = __( 'Enter a valid date of birth.', 'cas-formflow' );
+			}
+		}
+
+		if ( empty( $data['terms'] ) ) {
 			$errors['terms'] = __( 'Accept the Terms and Conditions to continue.', 'cas-formflow' );
 		}
 
@@ -179,5 +228,105 @@ class CAS_FormFlow_Ajax {
 		}
 
 		return $errors;
+	}
+
+	/**
+	 * Check date of birth format and range.
+	 *
+	 * @param string $date Date value in YYYY-MM-DD format.
+	 * @return bool
+	 */
+	private function is_valid_date_of_birth( string $date ): bool {
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
+			return false;
+		}
+
+		$parts = explode( '-', $date );
+		$year  = (int) $parts[0];
+		$month = (int) $parts[1];
+		$day   = (int) $parts[2];
+
+		if ( ! checkdate( $month, $day, $year ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get latest allowed date of birth for the configured minimum age.
+	 *
+	 * @return string Date in YYYY-MM-DD format.
+	 */
+	private function get_max_date_of_birth(): string {
+		return wp_date(
+			'Y-m-d',
+			strtotime( '-' . CAS_FORMFLOW_MIN_AGE . ' years', current_time( 'timestamp' ) )
+		);
+	}
+
+	/**
+	 * Persist a validated submission.
+	 *
+	 * @param array<string, mixed> $data Sanitized and validated payload.
+	 * @return int New submission ID, or 0 on failure.
+	 */
+	private function save_submission( array $data ): int {
+		global $wpdb;
+
+		$inserted = $wpdb->insert(
+			$wpdb->prefix . self::TABLE_NAME,
+			$this->prepare_submission_row( $data ),
+			array( '%s', '%s', '%s', '%s', '%s' )
+		);
+
+		if ( false === $inserted ) {
+			return 0;
+		}
+
+		return (int) $wpdb->insert_id;
+	}
+
+	/**
+	 * Prepare DB row values from sanitized payload.
+	 *
+	 * @param array<string, mixed> $data Sanitized and validated payload.
+	 * @return array<string, string>
+	 */
+	private function prepare_submission_row( array $data ): array {
+		return array(
+			'first_name'  => (string) $data['first_name'],
+			'phone'       => (string) $data['phone'],
+			'email'       => (string) $data['email'],
+			'description' => $this->prepare_submission_description( $data ),
+			'created_at'  => current_time( 'mysql' ),
+		);
+	}
+
+	/**
+	 * Prepare JSON description for fields that do not have dedicated columns yet.
+	 *
+	 * @param array<string, mixed> $data Sanitized and validated payload.
+	 * @return string
+	 */
+	private function prepare_submission_description( array $data ): string {
+		$description = wp_json_encode(
+			array(
+				'last_name'      => $data['last_name'],
+				'date_of_birth'  => $data['date_of_birth'],
+				'country'        => $data['country'],
+				'city'           => $data['city'],
+				'street_address' => $data['street_address'],
+				'postal_code'    => $data['postal_code'],
+				'terms'          => '1' === $data['terms'],
+				'newsletter'     => '1' === $data['newsletter'],
+			)
+		);
+
+		if ( false === $description ) {
+			return '';
+		}
+
+		return $description;
 	}
 }
