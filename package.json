@@ -1,0 +1,15 @@
+{
+  "name": "cas-formflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development tooling for CAS FormFlow WordPress plugin",
+  "scripts": {
+    "lint:js": "eslint .",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "eslint": "^9.25.1",
+    "prettier": "^3.5.3"
+  }
+}
