@@ -1,28 +1,89 @@
 .cas-formflow {
-	max-width: 100%;
+	--cas-formflow-blue: #2f87de;
+	--cas-formflow-bg: #f7f7f3;
+
+	max-width: 720px;
+	background: var(--cas-formflow-bg);
 }
 
-.cas-formflow-form {
-	width: 100%;
+.cas-formflow-progress {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.75rem;
+	padding-left: 0;
+	list-style: none;
+}
+
+.cas-formflow-progress-item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	color: #6c757d;
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.cas-formflow-progress-item:not(:last-child)::after {
+	width: 2.625rem;
+	height: 0.125rem;
+	background: #dee2e6;
+	content: "";
+}
+
+.cas-formflow-progress-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background: #dee2e6;
+	color: #6c757d;
+	line-height: 1;
+}
+
+.cas-formflow-progress-item.is-active .cas-formflow-progress-number,
+.cas-formflow-progress-item.is-complete .cas-formflow-progress-number {
+	background: var(--cas-formflow-blue);
+	color: #ffffff;
+}
+
+.cas-formflow-progress-item.is-active:not(:last-child)::after,
+.cas-formflow-progress-item.is-complete:not(:last-child)::after {
+	background: var(--cas-formflow-blue);
+}
+
+.cas-formflow-step[hidden] {
+	display: none !important;
 }
 
 .cas-formflow-step-inner {
-	border-radius: 1rem;
+	border-radius: 0.5rem;
 }
 
-.cas-formflow-input,
-.cas-formflow-textarea {
-	min-height: 48px;
-}
-
-.cas-formflow-textarea {
-	min-height: 140px;
-	resize: vertical;
+.cas-formflow-button {
+	min-width: 6.5rem;
 }
 
 @media (max-width: 575.98px) {
-	.cas-formflow {
-		margin-top: 2rem;
-		margin-bottom: 2rem;
+	.cas-formflow-progress {
+		gap: 0.5rem;
+	}
+
+	.cas-formflow-progress-item {
+		gap: 0.5rem;
+	}
+
+	.cas-formflow-progress-item:not(:last-child)::after {
+		width: 1.875rem;
+	}
+
+	.cas-formflow-actions {
+		align-items: stretch;
+	}
+
+	.cas-formflow-button {
+		width: 100%;
 	}
 }

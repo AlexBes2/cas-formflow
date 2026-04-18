@@ -96,10 +96,10 @@ class CAS_FormFlow_Plugin {
 		);
 
 		wp_enqueue_script(
-			'cas-formflow-bootstrap',
-			CAS_FORMFLOW_PLUGIN_URL . 'assets/js/bootstrap.bundle.min.js',
+			'cas-formflow-script',
+			CAS_FORMFLOW_PLUGIN_URL . 'assets/js/formflow.js',
 			array(),
-			'5.3.8',
+			CAS_FORMFLOW_VERSION,
 			true
 		);
 	}
