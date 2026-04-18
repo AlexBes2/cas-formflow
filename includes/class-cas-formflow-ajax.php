@@ -188,7 +188,7 @@ class CAS_FormFlow_Ajax {
 		}
 
 		foreach ( self::FIELD_MAX_LENGTHS as $field => $max_length ) {
-			if ( ! empty( $data[ $field ] ) && strlen( (string) $data[ $field ] ) > $max_length ) {
+			if ( ! empty( $data[ $field ] ) && $this->get_text_length( (string) $data[ $field ] ) > $max_length ) {
 				$errors[ $field ] = sprintf(
 					/* translators: %d: maximum number of characters. */
 					__( 'Use %d characters or fewer.', 'cas-formflow' ),
@@ -230,6 +230,20 @@ class CAS_FormFlow_Ajax {
 		}
 
 		return $errors;
+	}
+
+	/**
+	 * Get text length in characters when multibyte support is available.
+	 *
+	 * @param string $value Text value.
+	 * @return int
+	 */
+	private function get_text_length( string $value ): int {
+		if ( function_exists( 'mb_strlen' ) ) {
+			return mb_strlen( $value );
+		}
+
+		return strlen( $value );
 	}
 
 	/**
@@ -430,6 +444,10 @@ class CAS_FormFlow_Ajax {
 		$valid_recipients = array();
 
 		foreach ( $recipients as $recipient ) {
+			if ( ! is_scalar( $recipient ) ) {
+				continue;
+			}
+
 			$recipient = sanitize_email( (string) $recipient );
 
 			if ( is_email( $recipient ) ) {

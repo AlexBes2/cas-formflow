@@ -59,7 +59,9 @@ $cas_formflow_birth_date_max = wp_date(
 											name="first_name"
 											placeholder="John"
 											autocomplete="given-name"
+											maxlength="191"
 											data-error-required="Enter your first name."
+											data-error-maxlength="Use 191 characters or fewer."
 											required
 										>
 										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-first-name-error" aria-live="polite" hidden></p>
@@ -74,7 +76,9 @@ $cas_formflow_birth_date_max = wp_date(
 											name="last_name"
 											placeholder="Doe"
 											autocomplete="family-name"
+											maxlength="191"
 											data-error-required="Enter your last name."
+											data-error-maxlength="Use 191 characters or fewer."
 											required
 										>
 										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-last-name-error" aria-live="polite" hidden></p>
@@ -89,8 +93,12 @@ $cas_formflow_birth_date_max = wp_date(
 											name="email"
 											placeholder="john@example.com"
 											autocomplete="email"
+											maxlength="191"
+											pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
 											data-error-required="Enter your email address."
 											data-error-type="Enter a valid email address."
+											data-error-pattern="Enter a valid email address."
+											data-error-maxlength="Use 191 characters or fewer."
 											required
 										>
 										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-email-error" aria-live="polite" hidden></p>
@@ -107,8 +115,10 @@ $cas_formflow_birth_date_max = wp_date(
 											autocomplete="tel"
 											inputmode="tel"
 											pattern="^[0-9+\(\) .\-]{7,20}$"
+											maxlength="20"
 											data-error-required="Enter your phone number."
 											data-error-pattern="Use 7-20 digits and phone symbols only."
+											data-error-maxlength="Use 20 characters or fewer."
 											required
 										>
 										<p class="cas-formflow-error invalid-feedback mb-0" id="cas-phone-error" aria-live="polite" hidden></p>
@@ -176,7 +186,9 @@ $cas_formflow_birth_date_max = wp_date(
 										name="city"
 										placeholder="Odesa"
 										autocomplete="address-level2"
+										maxlength="100"
 										data-error-required="Enter your city."
+										data-error-maxlength="Use 100 characters or fewer."
 										required
 									>
 									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-city-error" aria-live="polite" hidden></p>
@@ -191,6 +203,8 @@ $cas_formflow_birth_date_max = wp_date(
 										name="street_address"
 										placeholder="123 Main St, Apt 4"
 										autocomplete="street-address"
+										maxlength="191"
+										data-error-maxlength="Use 191 characters or fewer."
 									>
 									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-street-address-error" aria-live="polite" hidden></p>
 								</div>
@@ -204,6 +218,8 @@ $cas_formflow_birth_date_max = wp_date(
 										name="postal_code"
 										placeholder="65000"
 										autocomplete="postal-code"
+										maxlength="20"
+										data-error-maxlength="Use 20 characters or fewer."
 									>
 									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-postal-code-error" aria-live="polite" hidden></p>
 								</div>
