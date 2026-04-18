@@ -22,6 +22,8 @@ Implemented so far:
 - AJAX submission with nonce protection
 - Server-side sanitization and validation
 - Lead storage in the custom submissions table
+- Admin email notification for new submissions
+- SMTP delivery through WordPress PHPMailer
 
 ## Planned Features
 

@@ -110,6 +110,8 @@ class CAS_FormFlow_Ajax {
 			);
 		}
 
+		$this->send_admin_notification( $submission_id, $data );
+
 		wp_send_json_success(
 			array(
 				'message'      => __( 'Thank you. Your submission has been received.', 'cas-formflow' ),
@@ -328,5 +330,233 @@ class CAS_FormFlow_Ajax {
 		}
 
 		return $description;
+	}
+
+	/**
+	 * Notify site admin about a new saved submission.
+	 *
+	 * Email delivery errors should not block the visitor after the submission
+	 * has already been stored successfully.
+	 *
+	 * @param int                  $submission_id Saved submission ID.
+	 * @param array<string, mixed> $data Sanitized and validated payload.
+	 * @return bool Whether WordPress accepted the email for delivery.
+	 */
+	private function send_admin_notification( int $submission_id, array $data ): bool {
+		$recipients = (array) apply_filters(
+			'cas_formflow_admin_notification_recipients',
+			$this->get_admin_notification_recipients(),
+			$submission_id,
+			$data
+		);
+		$recipients = $this->sanitize_notification_recipients( $recipients );
+
+		if ( empty( $recipients ) ) {
+			return false;
+		}
+
+		$site_name = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		$subject   = (string) apply_filters(
+			'cas_formflow_admin_notification_subject',
+			sprintf(
+				/* translators: %s: site name. */
+				__( '[%s] New CAS FormFlow submission', 'cas-formflow' ),
+				$site_name
+			),
+			$submission_id,
+			$data
+		);
+
+		$headers = array(
+			'Content-Type: text/plain; charset=UTF-8',
+		);
+
+		if ( is_email( (string) $data['email'] ) ) {
+			$headers[] = 'Reply-To: ' . (string) $data['email'];
+		}
+
+		$sent = wp_mail(
+			$recipients,
+			$subject,
+			$this->prepare_admin_notification_message( $submission_id, $data ),
+			$headers
+		);
+
+		if ( ! $sent && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				sprintf(
+					'CAS FormFlow: admin notification email failed for submission ID %d.',
+					$submission_id
+				)
+			);
+		}
+
+		return $sent;
+	}
+
+	/**
+	 * Get default admin notification recipients.
+	 *
+	 * @return array<int, string>
+	 */
+	private function get_admin_notification_recipients(): array {
+		$recipients = array(
+			get_option( 'admin_email' ),
+		);
+
+		$admin_users = get_users(
+			array(
+				'role'   => 'administrator',
+				'fields' => array( 'user_email' ),
+			)
+		);
+
+		foreach ( $admin_users as $admin_user ) {
+			if ( isset( $admin_user->user_email ) ) {
+				$recipients[] = $admin_user->user_email;
+			}
+		}
+
+		return $recipients;
+	}
+
+	/**
+	 * Validate and deduplicate notification recipients.
+	 *
+	 * @param array<int, mixed> $recipients Raw recipients.
+	 * @return array<int, string>
+	 */
+	private function sanitize_notification_recipients( array $recipients ): array {
+		$valid_recipients = array();
+
+		foreach ( $recipients as $recipient ) {
+			$recipient = sanitize_email( (string) $recipient );
+
+			if ( is_email( $recipient ) ) {
+				$valid_recipients[] = $recipient;
+			}
+		}
+
+		return array_values( array_unique( $valid_recipients ) );
+	}
+
+	/**
+	 * Prepare admin notification body.
+	 *
+	 * @param int                  $submission_id Saved submission ID.
+	 * @param array<string, mixed> $data Sanitized and validated payload.
+	 * @return string
+	 */
+	private function prepare_admin_notification_message( int $submission_id, array $data ): string {
+		$submitted_at = wp_date(
+			get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+			current_time( 'timestamp' )
+		);
+
+		$lines = array(
+			__( 'A new CAS FormFlow submission has been received.', 'cas-formflow' ),
+			'',
+			sprintf(
+				/* translators: %d: submission ID. */
+				__( 'Submission ID: %d', 'cas-formflow' ),
+				$submission_id
+			),
+			sprintf(
+				/* translators: %s: submission date and time. */
+				__( 'Submitted at: %s', 'cas-formflow' ),
+				$submitted_at
+			),
+			'',
+			__( 'Contact details:', 'cas-formflow' ),
+			sprintf(
+				/* translators: %s: first name. */
+				__( 'First name: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['first_name'] )
+			),
+			sprintf(
+				/* translators: %s: last name. */
+				__( 'Last name: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['last_name'] )
+			),
+			sprintf(
+				/* translators: %s: email address. */
+				__( 'Email: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['email'] )
+			),
+			sprintf(
+				/* translators: %s: phone number. */
+				__( 'Phone: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['phone'] )
+			),
+			sprintf(
+				/* translators: %s: date of birth. */
+				__( 'Date of birth: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['date_of_birth'] )
+			),
+			'',
+			__( 'Address:', 'cas-formflow' ),
+			sprintf(
+				/* translators: %s: country. */
+				__( 'Country: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['country'] )
+			),
+			sprintf(
+				/* translators: %s: city. */
+				__( 'City: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['city'] )
+			),
+			sprintf(
+				/* translators: %s: street address. */
+				__( 'Street address: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['street_address'] )
+			),
+			sprintf(
+				/* translators: %s: postal code. */
+				__( 'ZIP / Postal code: %s', 'cas-formflow' ),
+				$this->format_notification_value( $data['postal_code'] )
+			),
+			'',
+			__( 'Preferences:', 'cas-formflow' ),
+			sprintf(
+				/* translators: %s: terms acceptance status. */
+				__( 'Terms accepted: %s', 'cas-formflow' ),
+				$this->format_notification_bool( $data['terms'] )
+			),
+			sprintf(
+				/* translators: %s: newsletter subscription status. */
+				__( 'Newsletter: %s', 'cas-formflow' ),
+				$this->format_notification_bool( $data['newsletter'] )
+			),
+		);
+
+		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Format scalar notification field value.
+	 *
+	 * @param mixed $value Field value.
+	 * @return string
+	 */
+	private function format_notification_value( mixed $value ): string {
+		$value = trim( (string) $value );
+
+		if ( '' === $value ) {
+			return __( 'Not provided', 'cas-formflow' );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Format checkbox-like notification value.
+	 *
+	 * @param mixed $value Checkbox value.
+	 * @return string
+	 */
+	private function format_notification_bool( mixed $value ): string {
+		return '1' === (string) $value
+			? __( 'Yes', 'cas-formflow' )
+			: __( 'No', 'cas-formflow' );
 	}
 }
