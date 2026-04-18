@@ -6,57 +6,57 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class CAS_FormFlow {
 
-    /**
-     * Single class instance.
-     *
-     * @var CAS_FormFlow|null
-     */
-    private static $instance = null;
+	/**
+	 * Single class instance.
+	 *
+	 * @var CAS_FormFlow|null
+	 */
+	private static $instance = null;
 
-    /**
-     * Returns singleton instance.
-     *
-     * @return CAS_FormFlow
-     */
-    public static function get_instance() {
-        if ( null === self::$instance ) {
-            self::$instance = new self();
-        }
+	/**
+	 * Returns singleton instance.
+	 *
+	 * @return CAS_FormFlow
+	 */
+	public static function get_instance(): CAS_FormFlow {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
 
-        return self::$instance;
-    }
+		return self::$instance;
+	}
 
-    /**
-     * Constructor.
-     */
-    private function __construct() {
-        $this->register_hooks();
-    }
+	/**
+	 * Constructor.
+	 */
+	private function __construct() {
+		$this->register_hooks();
+	}
 
-    /**
-     * Registers base hooks.
-     *
-     * @return void
-     */
-    private function register_hooks() {
-        add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-    }
+	/**
+	 * Registers base hooks.
+	 *
+	 * @return void
+	 */
+	private function register_hooks(): void {
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+	}
 
-    /**
-     * Loads translations.
-     *
-     * @return void
-     */
-    public function load_textdomain() {
-        load_plugin_textdomain(
-            'cas-formflow',
-            false,
-            dirname( CAS_FORMFLOW_BASENAME ) . '/languages/'
-        );
-    }
+	/**
+	 * Loads translations.
+	 *
+	 * @return void
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain(
+			'cas-formflow',
+			false,
+			dirname( plugin_basename( CAS_FORMFLOW_PLUGIN_FILE ) ) . '/languages/'
+		);
+	}
 }

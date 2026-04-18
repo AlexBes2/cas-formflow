@@ -1,0 +1,28 @@
+.cas-formflow {
+	max-width: 100%;
+}
+
+.cas-formflow-form {
+	width: 100%;
+}
+
+.cas-formflow-step-inner {
+	border-radius: 1rem;
+}
+
+.cas-formflow-input,
+.cas-formflow-textarea {
+	min-height: 48px;
+}
+
+.cas-formflow-textarea {
+	min-height: 140px;
+	resize: vertical;
+}
+
+@media (max-width: 575.98px) {
+	.cas-formflow {
+		margin-top: 2rem;
+		margin-bottom: 2rem;
+	}
+}
