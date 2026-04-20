@@ -19,7 +19,7 @@ class CAS_FormFlow {
 	private static $instance = null;
 
 	/**
-	 * Returns singleton instance.
+	 * Return the singleton instance.
 	 *
 	 * @return CAS_FormFlow
 	 */
@@ -39,7 +39,7 @@ class CAS_FormFlow {
 	}
 
 	/**
-	 * Registers base hooks.
+	 * Register base hooks.
 	 *
 	 * @return void
 	 */
@@ -48,7 +48,7 @@ class CAS_FormFlow {
 	}
 
 	/**
-	 * Loads translations.
+	 * Load translations.
 	 *
 	 * @return void
 	 */

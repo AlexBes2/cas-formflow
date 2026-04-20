@@ -16,7 +16,6 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 class CAS_FormFlow_Admin {
 
 	private const MENU_SLUG = 'cas-formflow-submissions';
-	private const TABLE_NAME = 'cas_formflow_submissions';
 
 	/**
 	 * Register admin hooks.
@@ -77,9 +76,7 @@ class CAS_FormFlow_Admin {
 	 * @return string
 	 */
 	public static function get_table_name(): string {
-		global $wpdb;
-
-		return $wpdb->prefix . self::TABLE_NAME;
+		return CAS_FormFlow_Database::get_submissions_table_name();
 	}
 }
 
@@ -88,7 +85,7 @@ class CAS_FormFlow_Submissions_List_Table extends WP_List_Table {
 	private const ITEMS_PER_PAGE = 20;
 
 	/**
-	 * Set table labels.
+	 * Set list table labels.
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -112,6 +109,11 @@ class CAS_FormFlow_Submissions_List_Table extends WP_List_Table {
 			$this->get_sortable_columns(),
 			$this->get_primary_column_name(),
 		);
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$this->items = array();
+			return;
+		}
 
 		$per_page     = $this->get_items_per_page( 'cas_formflow_submissions_per_page', self::ITEMS_PER_PAGE );
 		$current_page = $this->get_pagenum();
@@ -199,7 +201,15 @@ class CAS_FormFlow_Submissions_List_Table extends WP_List_Table {
 	private function get_total_items(): int {
 		global $wpdb;
 
-		$table_name = CAS_FormFlow_Admin::get_table_name();
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return 0;
+		}
+
+		$table_name = CAS_FormFlow_Database::get_escaped_submissions_table_name();
+
+		if ( '' === $table_name ) {
+			return 0;
+		}
 
 		return (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
@@ -214,13 +224,21 @@ class CAS_FormFlow_Submissions_List_Table extends WP_List_Table {
 	private function get_submissions( int $per_page, int $current_page ): array {
 		global $wpdb;
 
-		$table_name = CAS_FormFlow_Admin::get_table_name();
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return array();
+		}
+
+		$table_name = CAS_FormFlow_Database::get_escaped_submissions_table_name();
 		$orderby   = $this->get_orderby();
 		$order     = $this->get_order();
 		$offset    = ( $current_page - 1 ) * $per_page;
 
+		if ( '' === $table_name ) {
+			return array();
+		}
+
 		$query = $wpdb->prepare(
-			"SELECT id, first_name, phone, email, description, created_at FROM {$table_name} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT id, first_name, phone, email, description, created_at FROM {$table_name} ORDER BY `{$orderby}` {$order} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$per_page,
 			$offset
 		);

@@ -29,6 +29,7 @@ class CAS_FormFlow_Plugin {
 	 * @return void
 	 */
 	private function load_dependencies(): void {
+		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-database.php';
 		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow.php';
 		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-admin.php';
 		require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-ajax.php';

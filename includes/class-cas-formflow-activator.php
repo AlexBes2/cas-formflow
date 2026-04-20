@@ -31,8 +31,12 @@ class CAS_FormFlow_Activator {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		$tableName      = $wpdb->prefix . 'cas_formflow_submissions';
+		$tableName      = CAS_FormFlow_Database::get_escaped_submissions_table_name();
 		$charsetCollate = $wpdb->get_charset_collate();
+
+		if ( '' === $tableName ) {
+			return;
+		}
 
 		$sql = "CREATE TABLE {$tableName} (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -50,7 +54,7 @@ class CAS_FormFlow_Activator {
 	}
 
 	/**
-	 * Store current DB schema version in options table.
+	 * Store the current DB schema version in the options table.
 	 *
 	 * @return void
 	 */

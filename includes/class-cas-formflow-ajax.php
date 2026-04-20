@@ -14,8 +14,6 @@ class CAS_FormFlow_Ajax {
 	private const ACTION = 'cas_formflow_submit';
 	private const NONCE_ACTION = 'cas_formflow_submit';
 	private const NONCE_FIELD = 'nonce';
-	private const TABLE_NAME = 'cas_formflow_submissions';
-
 	private const REQUIRED_FIELDS = array(
 		'first_name',
 		'last_name',
@@ -57,7 +55,7 @@ class CAS_FormFlow_Ajax {
 	}
 
 	/**
-	 * Returns AJAX config for frontend scripts.
+	 * Return AJAX config for frontend scripts.
 	 *
 	 * @return array<string, string>
 	 */
@@ -291,7 +289,7 @@ class CAS_FormFlow_Ajax {
 		global $wpdb;
 
 		$inserted = $wpdb->insert(
-			$wpdb->prefix . self::TABLE_NAME,
+			CAS_FormFlow_Database::get_submissions_table_name(),
 			$this->prepare_submission_row( $data ),
 			array( '%s', '%s', '%s', '%s', '%s' )
 		);
@@ -320,7 +318,7 @@ class CAS_FormFlow_Ajax {
 	}
 
 	/**
-	 * Prepare JSON description for fields that do not have dedicated columns yet.
+	 * Prepare JSON description for fields without dedicated columns.
 	 *
 	 * @param array<string, mixed> $data Sanitized and validated payload.
 	 * @return string
@@ -349,8 +347,7 @@ class CAS_FormFlow_Ajax {
 	/**
 	 * Notify site admin about a new saved submission.
 	 *
-	 * Email delivery errors should not block the visitor after the submission
-	 * has already been stored successfully.
+	 * Email delivery failures are logged but do not block a saved submission.
 	 *
 	 * @param int                  $submission_id Saved submission ID.
 	 * @param array<string, mixed> $data Sanitized and validated payload.
@@ -380,6 +377,7 @@ class CAS_FormFlow_Ajax {
 			$submission_id,
 			$data
 		);
+		$subject   = sanitize_text_field( $subject );
 
 		$headers = array(
 			'Content-Type: text/plain; charset=UTF-8',

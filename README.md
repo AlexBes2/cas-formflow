@@ -22,12 +22,15 @@ Implemented so far:
 - AJAX submission with nonce protection
 - Server-side sanitization and validation
 - Lead storage in the custom submissions table
+- Admin submissions list page
+- Capability checks for admin-only submissions access
+- Escaping, sanitization, and SQL identifier hardening
 - Admin email notification for new submissions
 - SMTP delivery through WordPress PHPMailer
 
 ## Planned Features
 
-- Admin panel for managing submissions
+- Submission details, export, and admin workflow improvements
 - Integrations (Telegram, Google Sheets, etc.)
 
 ## Installation

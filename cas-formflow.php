@@ -23,6 +23,7 @@ define( 'CAS_FORMFLOW_PLUGIN_FILE', __FILE__ );
 define( 'CAS_FORMFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CAS_FORMFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-database.php';
 require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-activator.php';
 require_once CAS_FORMFLOW_PLUGIN_DIR . 'includes/class-cas-formflow-plugin.php';
 
