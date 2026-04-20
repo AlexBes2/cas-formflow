@@ -17,8 +17,8 @@ class CAS_FormFlow_Activator {
 	 * @return void
 	 */
 	public static function activate(): void {
-		self::createTables();
-		self::updateDbVersionOption();
+		self::create_tables();
+		self::update_db_version_option();
 	}
 
 	/**
@@ -26,7 +26,7 @@ class CAS_FormFlow_Activator {
 	 *
 	 * @return void
 	 */
-	private static function createTables(): void {
+	private static function create_tables(): void {
 		global $wpdb;
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -58,7 +58,7 @@ class CAS_FormFlow_Activator {
 	 *
 	 * @return void
 	 */
-	private static function updateDbVersionOption(): void {
+	private static function update_db_version_option(): void {
 		update_option( 'cas_formflow_db_version', CAS_FORMFLOW_DB_VERSION );
 	}
 }
