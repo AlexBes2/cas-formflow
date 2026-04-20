@@ -1,109 +1,52 @@
 .cas-formflow {
-	max-width: 720px;
-	background: var(--bs-tertiary-bg);
-}
-
-.cas-formflow-progress {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.75rem;
-	padding-left: 0;
-	list-style: none;
+    max-width: 720px;
 }
 
 .cas-formflow-progress-item {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	color: #6c757d;
-	font-size: 0.75rem;
-	font-weight: 700;
+    transition: color 160ms ease;
 }
 
 .cas-formflow-progress-item:not(:last-child)::after {
-	width: 2.625rem;
-	height: 0.125rem;
-	background: #dee2e6;
-	content: "";
+    width: 2.625rem;
+    height: 0.125rem;
+    background: var(--bs-border-color);
+    content: '';
+    transition: background-color 160ms ease;
 }
 
 .cas-formflow-progress-number {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 2rem;
-	height: 2rem;
-	border-radius: 50%;
-	background: #dee2e6;
-	color: #6c757d;
-	line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    transition:
+        background-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
 }
 
-.cas-formflow-progress-item.is-active .cas-formflow-progress-number,
-.cas-formflow-progress-item.is-complete .cas-formflow-progress-number {
-	background: var(--bs-primary);
-	color: #ffffff;
-}
-
-.cas-formflow-progress-item.has-error .cas-formflow-progress-number {
-	background: var(--bs-danger);
-	color: #ffffff;
+.cas-formflow-progress-item.is-active .cas-formflow-progress-number {
+    transform: translateY(-1px);
 }
 
 .cas-formflow-progress-item.is-active:not(:last-child)::after,
 .cas-formflow-progress-item.is-complete:not(:last-child)::after {
-	background: var(--bs-primary);
+    background: var(--bs-primary);
 }
 
-.cas-formflow-step[hidden] {
-	display: none !important;
-}
-
-.cas-formflow-step-inner {
-	border-radius: 0.5rem;
-}
-
-.cas-formflow-step-alert {
-	border-radius: 0.5rem;
-}
-
-.cas-formflow-error:not([hidden]) {
-	display: block;
+.cas-formflow-progress-item.has-error:not(:last-child)::after {
+    background: var(--bs-danger);
 }
 
 .cas-formflow-checkbox .cas-formflow-error {
-	margin-left: -1.5em;
-	padding-left: 1.5em;
-}
-
-.cas-formflow-field.has-error .cas-formflow-label,
-.cas-formflow-checkbox.has-error .cas-formflow-checkbox-label {
-	color: var(--bs-danger);
+    margin-left: -1.5em;
+    padding-left: 1.5em;
 }
 
 .cas-formflow-button {
-	min-width: 6.5rem;
+    min-width: 6.5rem;
 }
 
 @media (max-width: 575.98px) {
-	.cas-formflow-progress {
-		gap: 0.5rem;
-	}
-
-	.cas-formflow-progress-item {
-		gap: 0.5rem;
-	}
-
-	.cas-formflow-progress-item:not(:last-child)::after {
-		width: 1.875rem;
-	}
-
-	.cas-formflow-actions {
-		align-items: stretch;
-	}
-
-	.cas-formflow-button {
-		width: 100%;
-	}
+    .cas-formflow-progress-item:not(:last-child)::after {
+        width: 1.875rem;
+    }
 }

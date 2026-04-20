@@ -1,556 +1,641 @@
 (function () {
-	'use strict';
+    'use strict';
 
-	var FIELD_SELECTOR = 'input, select, textarea';
-	var STEP_ERROR_MESSAGE = 'Please fix the highlighted fields before continuing.';
-	var SUBMIT_ERROR_MESSAGE = 'Could not submit the form. Please try again.';
+    var FIELD_SELECTOR = 'input, select, textarea';
+    var STEP_ERROR_MESSAGE = 'Please fix the highlighted fields before continuing.';
+    var SUBMIT_ERROR_MESSAGE = 'Could not submit the form. Please try again.';
 
-	function getFocusableField(step) {
-		return step.querySelector(FIELD_SELECTOR + ', button');
-	}
-
-	function getFieldWrapper(field) {
-		return field.closest('.cas-formflow-field, .cas-formflow-checkbox');
-	}
-
-	function getFieldErrorId(field) {
-		return field.id ? field.id + '-error' : '';
-	}
-
-	function getDescribedByIds(field) {
-		var describedBy = field.getAttribute('aria-describedby');
-
-		return describedBy ? describedBy.split(/\s+/).filter(Boolean) : [];
-	}
-
-	function addDescribedById(field, id) {
-		var ids = getDescribedByIds(field);
-
-		if (ids.indexOf(id) === -1) {
-			ids.push(id);
-		}
-
-		field.setAttribute('aria-describedby', ids.join(' '));
-	}
-
-	function removeDescribedById(field, id) {
-		var ids = getDescribedByIds(field).filter(function (describedById) {
-			return describedById !== id;
-		});
-
-		if (ids.length) {
-			field.setAttribute('aria-describedby', ids.join(' '));
-		} else {
-			field.removeAttribute('aria-describedby');
-		}
-	}
-
-	function hasFieldValue(field) {
-		if (field.type === 'checkbox' || field.type === 'radio') {
-			return field.checked;
-		}
-
-		return field.value.trim() !== '';
-	}
-
-	function getFieldMessage(field, messageType, fallback) {
-		var customMessage = field.getAttribute('data-error-' + messageType);
-
-		return customMessage || fallback;
-	}
-
-	function getFieldErrorMessage(field) {
-		var validity = field.validity;
-
-		if (validity.valid) {
-			return '';
-		}
-
-		if (validity.valueMissing) {
-			return getFieldMessage(field, 'required', 'This field is required.');
-		}
-
-		if (validity.badInput) {
-			return getFieldMessage(field, 'invalid', 'Enter a valid value.');
-		}
-
-		if (validity.typeMismatch) {
-			return getFieldMessage(field, 'type', 'Enter a valid value.');
-		}
-
-		if (validity.patternMismatch) {
-			return getFieldMessage(field, 'pattern', 'Use the requested format.');
-		}
-
-		if (validity.tooShort) {
-			return getFieldMessage(field, 'minlength', 'Enter a longer value.');
-		}
-
-		if (validity.tooLong) {
-			return getFieldMessage(field, 'maxlength', 'Enter a shorter value.');
-		}
-
-		if (validity.rangeUnderflow) {
-			return getFieldMessage(field, 'min', 'Enter a higher value.');
-		}
-
-		if (validity.rangeOverflow) {
-			return getFieldMessage(field, 'max', 'Enter a lower value.');
-		}
-
-		return getFieldMessage(field, 'invalid', 'Enter a valid value.');
-	}
-
-	function setFieldError(field, message) {
-		var wrapper = getFieldWrapper(field);
-		var errorId = getFieldErrorId(field);
-		var error = wrapper && errorId ? wrapper.querySelector('#' + errorId) : null;
-		var isValidated = field.getAttribute('data-cas-validated') === 'true';
-		var hasValue = hasFieldValue(field);
-
-		field.classList.toggle('is-invalid', Boolean(message));
-		field.classList.toggle('is-valid', !message && isValidated && hasValue);
-		field.setAttribute('aria-invalid', message ? 'true' : 'false');
-
-		if (wrapper) {
-			wrapper.classList.toggle('has-error', Boolean(message));
-			wrapper.classList.toggle('has-success', !message && isValidated && hasValue);
-		}
-
-		if (!wrapper || !errorId) {
-			return;
-		}
-
-		if (!error) {
-			error = document.createElement('p');
-			error.className = 'cas-formflow-error invalid-feedback mb-0';
-			error.id = errorId;
-			wrapper.appendChild(error);
-		}
-
-		error.textContent = message;
-		error.hidden = !message;
-
-		if (message) {
-			addDescribedById(field, errorId);
-		} else {
-			removeDescribedById(field, errorId);
-		}
-	}
-
-	function validateField(field) {
-		var message = getFieldErrorMessage(field);
-
-		field.setAttribute('data-cas-validated', 'true');
-		setFieldError(field, message);
-
-		return !message;
-	}
-
-	function getStepFields(step) {
-		return Array.prototype.slice.call(step.querySelectorAll(FIELD_SELECTOR));
-	}
-
-	function setStepAlert(step, invalidCount) {
-		var alert = step.querySelector('.cas-formflow-step-alert');
-
-		if (!alert) {
-			return;
-		}
-
-		if (invalidCount > 0) {
-			alert.textContent = STEP_ERROR_MESSAGE;
-			alert.hidden = false;
-			return;
-		}
-
-		alert.textContent = '';
-		alert.hidden = true;
-	}
-
-	function updateProgressErrorState(progressItems, stepIndex, hasError) {
-		var progressItem = progressItems[stepIndex];
-
-		if (!progressItem) {
-			return;
-		}
-
-		progressItem.classList.toggle('has-error', hasError);
-	}
-
-	function validateStep(step, shouldFocus) {
-		var fields = getStepFields(step);
-		var firstInvalidField = null;
-		var invalidCount = 0;
-
-		fields.forEach(function (field) {
-			var isValid = validateField(field);
-
-			if (!isValid) {
-				invalidCount += 1;
-			}
-
-			if (!isValid && !firstInvalidField) {
-				firstInvalidField = field;
-			}
-		});
-
-		setStepAlert(step, invalidCount);
-
-		if (firstInvalidField) {
-			if (shouldFocus) {
-				firstInvalidField.focus();
-			}
-
-			return false;
-		}
-
-		return true;
-	}
-
-	function refreshValidatedStep(step) {
-		var hasVisibleStepAlert = Boolean(
-			step.querySelector('.cas-formflow-step-alert:not([hidden])')
-		);
-
-		if (hasVisibleStepAlert) {
-			return validateStep(step, false);
-		}
-
-		return true;
-	}
-
-	function setActiveStep(steps, progressItems, activeIndex, shouldFocus) {
-		steps.forEach(function (step, index) {
-			var isActive = index === activeIndex;
-
-			step.classList.toggle('is-active', isActive);
-			step.hidden = !isActive;
-			step.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-		});
-
-		progressItems.forEach(function (item, index) {
-			var isActive = index === activeIndex;
-
-			item.classList.toggle('is-active', isActive);
-			item.classList.toggle('is-complete', index < activeIndex);
-
-			if (isActive) {
-				item.setAttribute('aria-current', 'step');
-			} else {
-				item.removeAttribute('aria-current');
-			}
-		});
-
-		if (shouldFocus) {
-			var focusableField = getFocusableField(steps[activeIndex]);
-
-			if (focusableField) {
-				focusableField.focus();
-			}
-		}
-	}
-
-	function getAjaxConfig() {
-		return window.casFormflow || {};
-	}
-
-	function setSubmitAlert(form, type, message) {
-		var alert = form.querySelector('.cas-formflow-submit-alert');
-
-		if (!alert) {
-			return;
-		}
-
-		alert.textContent = message || '';
-		alert.hidden = !message;
-		alert.classList.toggle('alert-success', type === 'success');
-		alert.classList.toggle('alert-danger', type === 'error');
-	}
-
-	function setSubmitLoading(form, isLoading) {
-		var submitButton = form.querySelector('.cas-formflow-button-submit');
-
-		if (!submitButton) {
-			return;
-		}
-
-		if (!submitButton.getAttribute('data-cas-label')) {
-			submitButton.setAttribute('data-cas-label', submitButton.textContent.trim());
-		}
-
-		submitButton.disabled = isLoading;
-		submitButton.textContent = isLoading
-			? 'Submitting...'
-			: submitButton.getAttribute('data-cas-label');
-	}
-
-	function resetFormState(form, steps, progressItems) {
-		getStepFields(form).forEach(function (field) {
-			field.removeAttribute('data-cas-validated');
-			setFieldError(field, '');
-		});
-
-		steps.forEach(function (step) {
-			setStepAlert(step, 0);
-		});
-
-		progressItems.forEach(function (item) {
-			item.classList.remove('has-error');
-		});
-	}
-
-	function applyServerErrors(form, errors) {
-		var firstErrorField = null;
-
-		if (!errors || typeof errors !== 'object') {
-			return firstErrorField;
-		}
-
-		Object.keys(errors).forEach(function (fieldName) {
-			var field = form.elements[fieldName];
-
-			if (field instanceof HTMLElement) {
-				field.setAttribute('data-cas-validated', 'true');
-				setFieldError(field, errors[fieldName]);
-
-				if (!firstErrorField) {
-					firstErrorField = field;
-				}
-			}
-		});
-
-		return firstErrorField;
-	}
-
-	function submitForm(form) {
-		var config = getAjaxConfig();
-		var formData = new FormData(form);
-
-		if (!config.ajaxUrl || !config.action || !config.nonce) {
-			setSubmitAlert(form, 'error', SUBMIT_ERROR_MESSAGE);
-			return Promise.resolve({
-				firstErrorField: null,
-				isSubmitted: false,
-			});
-		}
-
-		formData.append('action', config.action);
-		formData.append('nonce', config.nonce);
-
-		setSubmitAlert(form, '', '');
-		setSubmitLoading(form, true);
-
-		return fetch(config.ajaxUrl, {
-			method: 'POST',
-			credentials: 'same-origin',
-			body: formData,
-		})
-			.then(function (response) {
-				return response.json().catch(function () {
-					throw new Error(SUBMIT_ERROR_MESSAGE);
-				});
-			})
-			.then(function (payload) {
-				var data = payload && payload.data ? payload.data : {};
-				var message = data.message || SUBMIT_ERROR_MESSAGE;
-				var firstErrorField = null;
-
-				if (!payload || !payload.success) {
-					firstErrorField = applyServerErrors(form, data.errors);
-
-					if (firstErrorField) {
-						setSubmitAlert(form, '', '');
-					} else {
-						setSubmitAlert(form, 'error', message);
-					}
-
-					return {
-						firstErrorField: firstErrorField,
-						isSubmitted: false,
-					};
-				}
-
-				form.reset();
-				setSubmitAlert(form, 'success', message);
-				return {
-					firstErrorField: null,
-					isSubmitted: true,
-				};
-			})
-			.catch(function () {
-				setSubmitAlert(form, 'error', SUBMIT_ERROR_MESSAGE);
-				return {
-					firstErrorField: null,
-					isSubmitted: false,
-				};
-			})
-			.finally(function () {
-				setSubmitLoading(form, false);
-			});
-	}
-
-	function initFormflow(formflow) {
-		var form = formflow.querySelector('.cas-formflow-form');
-		var steps = Array.prototype.slice.call(
-			formflow.querySelectorAll('.cas-formflow-step')
-		);
-		var progressItems = Array.prototype.slice.call(
-			formflow.querySelectorAll('.cas-formflow-progress-item')
-		);
-		var activeIndex = steps.findIndex(function (step) {
-			return step.classList.contains('is-active') && !step.hidden;
-		});
-
-		if (!steps.length) {
-			return;
-		}
-
-		if (activeIndex < 0) {
-			activeIndex = 0;
-		}
-
-		setActiveStep(steps, progressItems, activeIndex, false);
-
-		formflow.addEventListener('blur', function (event) {
-			var target = event.target;
-
-			if (target instanceof HTMLElement && target.matches(FIELD_SELECTOR)) {
-				validateField(target);
-				updateProgressErrorState(
-					progressItems,
-					activeIndex,
-					!refreshValidatedStep(steps[activeIndex])
-				);
-			}
-		}, true);
-
-		formflow.addEventListener('input', function (event) {
-			var target = event.target;
-
-			if (
-				target instanceof HTMLElement &&
-				target.matches(FIELD_SELECTOR) &&
-				target.getAttribute('data-cas-validated') === 'true'
-			) {
-				setFieldError(target, getFieldErrorMessage(target));
-				updateProgressErrorState(
-					progressItems,
-					activeIndex,
-					!refreshValidatedStep(steps[activeIndex])
-				);
-			}
-		});
-
-		formflow.addEventListener('change', function (event) {
-			var target = event.target;
-
-			if (target instanceof HTMLElement && target.matches(FIELD_SELECTOR)) {
-				validateField(target);
-				updateProgressErrorState(
-					progressItems,
-					activeIndex,
-					!refreshValidatedStep(steps[activeIndex])
-				);
-			}
-		});
-
-		formflow.addEventListener('click', function (event) {
-			var target = event.target;
-
-			if (!(target instanceof HTMLElement)) {
-				return;
-			}
-
-			var nextButton = target.closest('.cas-formflow-button-next');
-			var backButton = target.closest('.cas-formflow-button-back');
-			var nextIndex = activeIndex;
-
-			if (nextButton) {
-				if (!validateStep(steps[activeIndex], true)) {
-					updateProgressErrorState(progressItems, activeIndex, true);
-					return;
-				}
-
-				updateProgressErrorState(progressItems, activeIndex, false);
-				nextIndex = Math.min(activeIndex + 1, steps.length - 1);
-			} else if (backButton) {
-				nextIndex = Math.max(activeIndex - 1, 0);
-			} else {
-				return;
-			}
-
-			event.preventDefault();
-
-			if (nextIndex === activeIndex) {
-				return;
-			}
-
-			activeIndex = nextIndex;
-			setActiveStep(steps, progressItems, activeIndex, true);
-		});
-
-		if (form) {
-			form.addEventListener('submit', function (event) {
-				var firstInvalidStepIndex = -1;
-
-				event.preventDefault();
-				setSubmitAlert(form, '', '');
-
-				steps.forEach(function (step, index) {
-					var isValid = validateStep(step, false);
-
-					updateProgressErrorState(progressItems, index, !isValid);
-
-					if (firstInvalidStepIndex < 0 && !isValid) {
-						firstInvalidStepIndex = index;
-					}
-				});
-
-				if (firstInvalidStepIndex >= 0) {
-					activeIndex = firstInvalidStepIndex;
-					setActiveStep(steps, progressItems, activeIndex, true);
-					return;
-				}
-
-				submitForm(form).then(function (result) {
-					if (result.isSubmitted) {
-						resetFormState(form, steps, progressItems);
-						activeIndex = 0;
-						setActiveStep(steps, progressItems, activeIndex, false);
-						return;
-					}
-
-					if (result.firstErrorField) {
-						activeIndex = steps.indexOf(
-							result.firstErrorField.closest('.cas-formflow-step')
-						);
-
-						if (activeIndex >= 0) {
-							setStepAlert(steps[activeIndex], 1);
-							updateProgressErrorState(progressItems, activeIndex, true);
-							setActiveStep(steps, progressItems, activeIndex, false);
-							result.firstErrorField.focus();
-						}
-					}
-				});
-			});
-		}
-	}
-
-	function initFormflows() {
-		var formflows = document.querySelectorAll('[data-cas-formflow]');
-
-		if (!formflows.length) {
-			return;
-		}
-
-		formflows.forEach(initFormflow);
-	}
-
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initFormflows);
-	} else {
-		initFormflows();
-	}
+    function getFocusableField(step) {
+        return step.querySelector(FIELD_SELECTOR + ', button');
+    }
+
+    function getFieldWrapper(field) {
+        return field.closest('.cas-formflow-field, .cas-formflow-checkbox');
+    }
+
+    function getFieldErrorId(field) {
+        return field.id ? field.id + '-error' : '';
+    }
+
+    function getDescribedByIds(field) {
+        var describedBy = field.getAttribute('aria-describedby');
+
+        return describedBy ? describedBy.split(/\s+/).filter(Boolean) : [];
+    }
+
+    function addDescribedById(field, id) {
+        var ids = getDescribedByIds(field);
+
+        if (ids.indexOf(id) === -1) {
+            ids.push(id);
+        }
+
+        field.setAttribute('aria-describedby', ids.join(' '));
+    }
+
+    function removeDescribedById(field, id) {
+        var ids = getDescribedByIds(field).filter(function (describedById) {
+            return describedById !== id;
+        });
+
+        if (ids.length) {
+            field.setAttribute('aria-describedby', ids.join(' '));
+        } else {
+            field.removeAttribute('aria-describedby');
+        }
+    }
+
+    function hasFieldValue(field) {
+        if (field.type === 'checkbox' || field.type === 'radio') {
+            return field.checked;
+        }
+
+        return field.value.trim() !== '';
+    }
+
+    function getFieldMessage(field, messageType, fallback) {
+        var customMessage = field.getAttribute('data-error-' + messageType);
+
+        return customMessage || fallback;
+    }
+
+    function getFieldErrorMessage(field) {
+        var validity = field.validity;
+
+        if (validity.valid) {
+            return '';
+        }
+
+        if (validity.valueMissing) {
+            return getFieldMessage(field, 'required', 'This field is required.');
+        }
+
+        if (validity.badInput) {
+            return getFieldMessage(field, 'invalid', 'Enter a valid value.');
+        }
+
+        if (validity.typeMismatch) {
+            return getFieldMessage(field, 'type', 'Enter a valid value.');
+        }
+
+        if (validity.patternMismatch) {
+            return getFieldMessage(field, 'pattern', 'Use the requested format.');
+        }
+
+        if (validity.tooShort) {
+            return getFieldMessage(field, 'minlength', 'Enter a longer value.');
+        }
+
+        if (validity.tooLong) {
+            return getFieldMessage(field, 'maxlength', 'Enter a shorter value.');
+        }
+
+        if (validity.rangeUnderflow) {
+            return getFieldMessage(field, 'min', 'Enter a higher value.');
+        }
+
+        if (validity.rangeOverflow) {
+            return getFieldMessage(field, 'max', 'Enter a lower value.');
+        }
+
+        return getFieldMessage(field, 'invalid', 'Enter a valid value.');
+    }
+
+    function setFieldError(field, message) {
+        var wrapper = getFieldWrapper(field);
+        var label = wrapper
+            ? wrapper.querySelector('.cas-formflow-label, .cas-formflow-checkbox-label')
+            : null;
+        var errorId = getFieldErrorId(field);
+        var error = wrapper && errorId ? wrapper.querySelector('#' + errorId) : null;
+        var isValidated = field.getAttribute('data-cas-validated') === 'true';
+        var hasValue = hasFieldValue(field);
+        var hasSuccess = !message && isValidated && hasValue;
+
+        field.classList.toggle('is-invalid', Boolean(message));
+        field.classList.toggle('is-valid', hasSuccess);
+        field.setAttribute('aria-invalid', message ? 'true' : 'false');
+
+        if (wrapper) {
+            wrapper.classList.toggle('has-error', Boolean(message));
+            wrapper.classList.toggle('has-success', hasSuccess);
+        }
+
+        if (label) {
+            label.classList.toggle('text-danger', Boolean(message));
+            label.classList.toggle('text-success', hasSuccess);
+        }
+
+        if (!wrapper || !errorId) {
+            return;
+        }
+
+        if (!error) {
+            error = document.createElement('p');
+            error.className = 'cas-formflow-error invalid-feedback mb-0';
+            error.id = errorId;
+            wrapper.appendChild(error);
+        }
+
+        error.textContent = message;
+        error.hidden = !message;
+        error.classList.toggle('d-block', Boolean(message));
+
+        if (message) {
+            addDescribedById(field, errorId);
+        } else {
+            removeDescribedById(field, errorId);
+        }
+    }
+
+    function validateField(field) {
+        var message = getFieldErrorMessage(field);
+
+        field.setAttribute('data-cas-validated', 'true');
+        setFieldError(field, message);
+
+        return !message;
+    }
+
+    function getStepFields(step) {
+        return Array.prototype.slice.call(step.querySelectorAll(FIELD_SELECTOR));
+    }
+
+    function setStepAlert(step, invalidCount) {
+        var alert = step.querySelector('.cas-formflow-step-alert');
+
+        if (!alert) {
+            return;
+        }
+
+        if (invalidCount > 0) {
+            alert.textContent = STEP_ERROR_MESSAGE;
+            alert.hidden = false;
+            return;
+        }
+
+        alert.textContent = '';
+        alert.hidden = true;
+    }
+
+    function updateProgressErrorState(progressItems, stepIndex, hasError) {
+        var progressItem = progressItems[stepIndex];
+
+        if (!progressItem) {
+            return;
+        }
+
+        progressItem.classList.toggle('has-error', hasError);
+        updateProgressClasses(progressItem);
+    }
+
+    function setExclusiveClass(element, classNames, activeClass) {
+        classNames.forEach(function (className) {
+            element.classList.remove(className);
+        });
+
+        element.classList.add(activeClass);
+    }
+
+    function updateProgressClasses(progressItem) {
+        var number = progressItem.querySelector('.cas-formflow-progress-number');
+        var hasError = progressItem.classList.contains('has-error');
+        var isActive = progressItem.classList.contains('is-active');
+        var isComplete = progressItem.classList.contains('is-complete');
+        var isHighlighted = hasError || isActive || isComplete;
+
+        setExclusiveClass(
+            progressItem,
+            ['text-danger', 'text-primary', 'text-secondary'],
+            hasError ? 'text-danger' : isActive ? 'text-primary' : 'text-secondary'
+        );
+
+        if (!number) {
+            return;
+        }
+
+        if (!number.getAttribute('data-cas-number')) {
+            number.setAttribute('data-cas-number', number.textContent.trim());
+        }
+
+        number.textContent =
+            isComplete && !hasError ? '\u2713' : number.getAttribute('data-cas-number');
+        setExclusiveClass(
+            number,
+            ['bg-danger', 'bg-primary', 'bg-secondary-subtle'],
+            hasError ? 'bg-danger' : isActive || isComplete ? 'bg-primary' : 'bg-secondary-subtle'
+        );
+        setExclusiveClass(
+            number,
+            ['text-white', 'text-secondary'],
+            isHighlighted ? 'text-white' : 'text-secondary'
+        );
+    }
+
+    function validateStep(step, shouldFocus) {
+        var fields = getStepFields(step);
+        var firstInvalidField = null;
+        var invalidCount = 0;
+
+        fields.forEach(function (field) {
+            var isValid = validateField(field);
+
+            if (!isValid) {
+                invalidCount += 1;
+            }
+
+            if (!isValid && !firstInvalidField) {
+                firstInvalidField = field;
+            }
+        });
+
+        setStepAlert(step, invalidCount);
+
+        if (firstInvalidField) {
+            if (shouldFocus) {
+                firstInvalidField.focus();
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    function refreshValidatedStep(step) {
+        var hasVisibleStepAlert = Boolean(
+            step.querySelector('.cas-formflow-step-alert:not([hidden])')
+        );
+
+        if (hasVisibleStepAlert) {
+            return validateStep(step, false);
+        }
+
+        return true;
+    }
+
+    function setActiveStep(steps, progressItems, activeIndex, shouldFocus) {
+        steps.forEach(function (step, index) {
+            var isActive = index === activeIndex;
+
+            step.classList.toggle('is-active', isActive);
+            step.hidden = !isActive;
+            step.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+
+        progressItems.forEach(function (item, index) {
+            var isActive = index === activeIndex;
+
+            item.classList.toggle('is-active', isActive);
+            item.classList.toggle('is-complete', index < activeIndex);
+
+            if (isActive) {
+                item.setAttribute('aria-current', 'step');
+            } else {
+                item.removeAttribute('aria-current');
+            }
+
+            updateProgressClasses(item);
+        });
+
+        if (shouldFocus) {
+            var focusableField = getFocusableField(steps[activeIndex]);
+
+            if (focusableField) {
+                focusableField.focus();
+            }
+        }
+    }
+
+    function getAjaxConfig() {
+        return window.casFormflow || {};
+    }
+
+    function setSubmitAlert(form, type, message) {
+        var alert = form.querySelector('.cas-formflow-submit-alert');
+
+        if (!alert) {
+            return;
+        }
+
+        alert.textContent = message || '';
+        alert.hidden = !message;
+        alert.classList.toggle('alert-success', type === 'success');
+        alert.classList.toggle('alert-danger', type === 'error');
+    }
+
+    function setSubmitLoading(form, isLoading) {
+        var submitButton = form.querySelector('.cas-formflow-button-submit');
+        var steps = form.querySelector('.cas-formflow-steps');
+        var submitLabel = submitButton
+            ? submitButton.querySelector('.cas-formflow-submit-label')
+            : null;
+        var submitSpinner = submitButton
+            ? submitButton.querySelector('.cas-formflow-submit-spinner')
+            : null;
+        var buttons = form.querySelectorAll('.cas-formflow-button');
+
+        form.classList.toggle('is-submitting', isLoading);
+        form.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+
+        if (steps) {
+            steps.classList.toggle('opacity-75', isLoading);
+            steps.classList.toggle('pe-none', isLoading);
+        }
+
+        buttons.forEach(function (button) {
+            button.disabled = isLoading;
+        });
+
+        if (submitLabel && !submitButton.getAttribute('data-cas-label')) {
+            submitButton.setAttribute('data-cas-label', submitLabel.textContent.trim());
+        }
+
+        if (submitLabel) {
+            submitLabel.textContent = isLoading
+                ? 'Submitting...'
+                : submitButton.getAttribute('data-cas-label');
+        }
+
+        if (submitSpinner) {
+            submitSpinner.classList.toggle('d-none', !isLoading);
+        }
+    }
+
+    function resetFormState(form, steps, progressItems) {
+        getStepFields(form).forEach(function (field) {
+            field.removeAttribute('data-cas-validated');
+            setFieldError(field, '');
+        });
+
+        steps.forEach(function (step) {
+            setStepAlert(step, 0);
+        });
+
+        progressItems.forEach(function (item) {
+            item.classList.remove('has-error');
+            updateProgressClasses(item);
+        });
+    }
+
+    function applyServerErrors(form, errors) {
+        var firstErrorField = null;
+
+        if (!errors || typeof errors !== 'object') {
+            return firstErrorField;
+        }
+
+        Object.keys(errors).forEach(function (fieldName) {
+            var field = form.elements[fieldName];
+
+            if (field instanceof HTMLElement) {
+                field.setAttribute('data-cas-validated', 'true');
+                setFieldError(field, errors[fieldName]);
+
+                if (!firstErrorField) {
+                    firstErrorField = field;
+                }
+            }
+        });
+
+        return firstErrorField;
+    }
+
+    function submitForm(form) {
+        var config = getAjaxConfig();
+        var formData = new FormData(form);
+
+        if (!config.ajaxUrl || !config.action || !config.nonce) {
+            setSubmitAlert(form, 'error', SUBMIT_ERROR_MESSAGE);
+            return Promise.resolve({
+                firstErrorField: null,
+                isSubmitted: false,
+            });
+        }
+
+        formData.append('action', config.action);
+        formData.append('nonce', config.nonce);
+
+        setSubmitAlert(form, '', '');
+        setSubmitLoading(form, true);
+
+        return fetch(config.ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData,
+        })
+            .then(function (response) {
+                return response.json().catch(function () {
+                    throw new Error(SUBMIT_ERROR_MESSAGE);
+                });
+            })
+            .then(function (payload) {
+                var data = payload && payload.data ? payload.data : {};
+                var message = data.message || SUBMIT_ERROR_MESSAGE;
+                var firstErrorField = null;
+
+                if (!payload || !payload.success) {
+                    firstErrorField = applyServerErrors(form, data.errors);
+
+                    if (firstErrorField) {
+                        setSubmitAlert(form, '', '');
+                    } else {
+                        setSubmitAlert(form, 'error', message);
+                    }
+
+                    return {
+                        firstErrorField: firstErrorField,
+                        isSubmitted: false,
+                    };
+                }
+
+                form.reset();
+                setSubmitAlert(form, 'success', message);
+                return {
+                    firstErrorField: null,
+                    isSubmitted: true,
+                };
+            })
+            .catch(function () {
+                setSubmitAlert(form, 'error', SUBMIT_ERROR_MESSAGE);
+                return {
+                    firstErrorField: null,
+                    isSubmitted: false,
+                };
+            })
+            .finally(function () {
+                setSubmitLoading(form, false);
+            });
+    }
+
+    function initFormflow(formflow) {
+        var form = formflow.querySelector('.cas-formflow-form');
+        var steps = Array.prototype.slice.call(formflow.querySelectorAll('.cas-formflow-step'));
+        var progressItems = Array.prototype.slice.call(
+            formflow.querySelectorAll('.cas-formflow-progress-item')
+        );
+        var activeIndex = steps.findIndex(function (step) {
+            return step.classList.contains('is-active') && !step.hidden;
+        });
+
+        if (!steps.length) {
+            return;
+        }
+
+        if (activeIndex < 0) {
+            activeIndex = 0;
+        }
+
+        setActiveStep(steps, progressItems, activeIndex, false);
+
+        formflow.addEventListener(
+            'blur',
+            function (event) {
+                var target = event.target;
+
+                if (target instanceof HTMLElement && target.matches(FIELD_SELECTOR)) {
+                    validateField(target);
+                    updateProgressErrorState(
+                        progressItems,
+                        activeIndex,
+                        !refreshValidatedStep(steps[activeIndex])
+                    );
+                }
+            },
+            true
+        );
+
+        formflow.addEventListener('input', function (event) {
+            var target = event.target;
+
+            if (
+                target instanceof HTMLElement &&
+                target.matches(FIELD_SELECTOR) &&
+                target.getAttribute('data-cas-validated') === 'true'
+            ) {
+                setFieldError(target, getFieldErrorMessage(target));
+                updateProgressErrorState(
+                    progressItems,
+                    activeIndex,
+                    !refreshValidatedStep(steps[activeIndex])
+                );
+            }
+        });
+
+        formflow.addEventListener('change', function (event) {
+            var target = event.target;
+
+            if (target instanceof HTMLElement && target.matches(FIELD_SELECTOR)) {
+                validateField(target);
+                updateProgressErrorState(
+                    progressItems,
+                    activeIndex,
+                    !refreshValidatedStep(steps[activeIndex])
+                );
+            }
+        });
+
+        formflow.addEventListener('click', function (event) {
+            var target = event.target;
+
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+
+            var nextButton = target.closest('.cas-formflow-button-next');
+            var backButton = target.closest('.cas-formflow-button-back');
+            var nextIndex = activeIndex;
+
+            if (nextButton) {
+                if (!validateStep(steps[activeIndex], true)) {
+                    updateProgressErrorState(progressItems, activeIndex, true);
+                    return;
+                }
+
+                updateProgressErrorState(progressItems, activeIndex, false);
+                nextIndex = Math.min(activeIndex + 1, steps.length - 1);
+            } else if (backButton) {
+                nextIndex = Math.max(activeIndex - 1, 0);
+            } else {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (nextIndex === activeIndex) {
+                return;
+            }
+
+            activeIndex = nextIndex;
+            setActiveStep(steps, progressItems, activeIndex, true);
+        });
+
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                var firstInvalidStepIndex = -1;
+
+                event.preventDefault();
+
+                if (form.classList.contains('is-submitting')) {
+                    return;
+                }
+
+                setSubmitAlert(form, '', '');
+
+                steps.forEach(function (step, index) {
+                    var isValid = validateStep(step, false);
+
+                    updateProgressErrorState(progressItems, index, !isValid);
+
+                    if (firstInvalidStepIndex < 0 && !isValid) {
+                        firstInvalidStepIndex = index;
+                    }
+                });
+
+                if (firstInvalidStepIndex >= 0) {
+                    activeIndex = firstInvalidStepIndex;
+                    setActiveStep(steps, progressItems, activeIndex, true);
+                    return;
+                }
+
+                submitForm(form).then(function (result) {
+                    if (result.isSubmitted) {
+                        resetFormState(form, steps, progressItems);
+                        activeIndex = 0;
+                        setActiveStep(steps, progressItems, activeIndex, false);
+                        return;
+                    }
+
+                    if (result.firstErrorField) {
+                        activeIndex = steps.indexOf(
+                            result.firstErrorField.closest('.cas-formflow-step')
+                        );
+
+                        if (activeIndex >= 0) {
+                            setStepAlert(steps[activeIndex], 1);
+                            updateProgressErrorState(progressItems, activeIndex, true);
+                            setActiveStep(steps, progressItems, activeIndex, false);
+                            result.firstErrorField.focus();
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    function initFormflows() {
+        var formflows = document.querySelectorAll('[data-cas-formflow]');
+
+        if (!formflows.length) {
+            return;
+        }
+
+        formflows.forEach(initFormflow);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFormflows);
+    } else {
+        initFormflows();
+    }
 })();

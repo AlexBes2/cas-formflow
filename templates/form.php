@@ -17,37 +17,37 @@ $cas_formflow_birth_date_max = wp_date(
 );
 ?>
 
-<div class="cas-formflow container my-5 py-4 px-3 px-sm-4" data-cas-formflow>
+<div class="cas-formflow container bg-body-tertiary my-5 py-4 px-3 px-sm-4" data-cas-formflow>
 	<div class="row justify-content-center">
 		<div class="col-12">
 			<form class="cas-formflow-form" method="post" action="" novalidate>
 				<p
-					class="cas-formflow-submit-alert alert small mb-3"
+					class="cas-formflow-submit-alert alert small rounded-3 mb-3"
 					role="alert"
 					aria-live="polite"
 					hidden
 				></p>
 
-				<ol class="cas-formflow-progress mb-3" aria-label="Form progress">
-					<li class="cas-formflow-progress-item is-active" data-progress-step="1" aria-current="step">
-						<span class="cas-formflow-progress-number">1</span>
+				<ol class="cas-formflow-progress d-flex align-items-center justify-content-center gap-2 list-unstyled ps-0 mb-3" aria-label="Form progress">
+					<li class="cas-formflow-progress-item d-flex align-items-center gap-2 text-primary small fw-bold is-active" data-progress-step="1" aria-current="step">
+						<span class="cas-formflow-progress-number d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white lh-1">1</span>
 					</li>
-					<li class="cas-formflow-progress-item" data-progress-step="2">
-						<span class="cas-formflow-progress-number">2</span>
+					<li class="cas-formflow-progress-item d-flex align-items-center gap-2 text-secondary small fw-bold" data-progress-step="2">
+						<span class="cas-formflow-progress-number d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary lh-1">2</span>
 					</li>
-					<li class="cas-formflow-progress-item" data-progress-step="3">
-						<span class="cas-formflow-progress-number">3</span>
+					<li class="cas-formflow-progress-item d-flex align-items-center gap-2 text-secondary small fw-bold" data-progress-step="3">
+						<span class="cas-formflow-progress-number d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary lh-1">3</span>
 					</li>
 				</ol>
 
 				<div class="cas-formflow-steps">
 
 					<section class="cas-formflow-step is-active" data-step="1" aria-labelledby="cas-formflow-step-1-title">
-						<div class="cas-formflow-step-inner card border">
+						<div class="cas-formflow-step-inner card border rounded-3 shadow-sm">
 							<div class="card-body p-4">
 								<h2 class="cas-formflow-step-title h6 fw-bold mb-1" id="cas-formflow-step-1-title">Personal info</h2>
 								<p class="cas-formflow-step-description text-secondary small mb-3">Step 1 of 3</p>
-								<p class="cas-formflow-step-alert alert alert-danger small mb-3" role="alert" aria-live="polite" hidden></p>
+								<p class="cas-formflow-step-alert alert alert-danger small rounded-3 mb-3" role="alert" aria-live="polite" hidden></p>
 
 								<div class="row g-3">
 									<div class="cas-formflow-field col-12 col-sm-6">
@@ -141,7 +141,7 @@ $cas_formflow_birth_date_max = wp_date(
 									</div>
 								</div>
 
-								<div class="cas-formflow-actions d-flex justify-content-end mt-3">
+								<div class="cas-formflow-actions d-flex flex-column flex-sm-row justify-content-end mt-3">
 									<button type="button" class="cas-formflow-button cas-formflow-button-next btn btn-primary btn-sm px-4">
 										Next &rarr;
 									</button>
@@ -151,11 +151,11 @@ $cas_formflow_birth_date_max = wp_date(
 					</section>
 
 					<section class="cas-formflow-step" data-step="2" aria-labelledby="cas-formflow-step-2-title" hidden>
-						<div class="cas-formflow-step-inner card border">
+						<div class="cas-formflow-step-inner card border rounded-3 shadow-sm">
 							<div class="card-body p-4">
 								<h2 class="cas-formflow-step-title h6 fw-bold mb-1" id="cas-formflow-step-2-title">Address</h2>
 								<p class="cas-formflow-step-description text-secondary small mb-3">Step 2 of 3</p>
-								<p class="cas-formflow-step-alert alert alert-danger small mb-3" role="alert" aria-live="polite" hidden></p>
+								<p class="cas-formflow-step-alert alert alert-danger small rounded-3 mb-3" role="alert" aria-live="polite" hidden></p>
 
 								<div class="cas-formflow-field mb-3">
 									<label class="cas-formflow-label form-label small mb-1" for="cas-country">Country *</label>
@@ -224,7 +224,7 @@ $cas_formflow_birth_date_max = wp_date(
 									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-postal-code-error" aria-live="polite" hidden></p>
 								</div>
 
-								<div class="cas-formflow-actions d-flex justify-content-between gap-2 mt-3">
+								<div class="cas-formflow-actions d-flex flex-column flex-sm-row justify-content-between gap-2 mt-3">
 									<button type="button" class="cas-formflow-button cas-formflow-button-back btn btn-outline-secondary btn-sm px-4">
 										&larr; Back
 									</button>
@@ -238,11 +238,11 @@ $cas_formflow_birth_date_max = wp_date(
 					</section>
 
 					<section class="cas-formflow-step" data-step="3" aria-labelledby="cas-formflow-step-3-title" hidden>
-						<div class="cas-formflow-step-inner card border">
+						<div class="cas-formflow-step-inner card border rounded-3 shadow-sm">
 							<div class="card-body p-4">
 								<h2 class="cas-formflow-step-title h6 fw-bold mb-1" id="cas-formflow-step-3-title">Confirmation</h2>
 								<p class="cas-formflow-step-description text-secondary small mb-3">Step 3 of 3</p>
-								<p class="cas-formflow-step-alert alert alert-danger small mb-3" role="alert" aria-live="polite" hidden></p>
+								<p class="cas-formflow-step-alert alert alert-danger small rounded-3 mb-3" role="alert" aria-live="polite" hidden></p>
 
 								<div class="cas-formflow-checkbox form-check mb-2">
 									<input
@@ -274,13 +274,14 @@ $cas_formflow_birth_date_max = wp_date(
 									<p class="cas-formflow-error invalid-feedback mb-0" id="cas-newsletter-error" aria-live="polite" hidden></p>
 								</div>
 
-								<div class="cas-formflow-actions d-flex justify-content-between gap-2 mt-3">
+								<div class="cas-formflow-actions d-flex flex-column flex-sm-row justify-content-between gap-2 mt-3">
 									<button type="button" class="cas-formflow-button cas-formflow-button-back btn btn-outline-secondary btn-sm px-4">
 										&larr; Back
 									</button>
 
-									<button type="submit" class="cas-formflow-button cas-formflow-button-submit btn btn-success btn-sm px-4">
-										Submit &check;
+									<button type="submit" class="cas-formflow-button cas-formflow-button-submit btn btn-success btn-sm position-relative px-4">
+										<span class="cas-formflow-submit-label">Submit &check;</span>
+										<span class="cas-formflow-submit-spinner spinner-border spinner-border-sm ms-2 d-none" aria-hidden="true"></span>
 									</button>
 								</div>
 							</div>
