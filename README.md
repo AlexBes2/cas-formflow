@@ -8,11 +8,11 @@ CAS FormFlow is a modular plugin that provides a flexible multi-step contact for
 
 The plugin is designed following WordPress best practices with a focus on scalability, maintainability, and clean code structure.
 
-## Current Status
+## Status
 
-The plugin is under active development.
+The plugin is ready for review as a completed technical assignment.
 
-Implemented so far:
+Implemented features:
 
 - Plugin scaffold and structure
 - Activation hook
@@ -28,10 +28,9 @@ Implemented so far:
 - Admin email notification for new submissions
 - SMTP delivery through WordPress PHPMailer
 
-## Planned Features
+## Screenshots
 
-- Submission details, export, and admin workflow improvements
-- Integrations (Telegram, Google Sheets, etc.)
+Screenshots are stored in the plugin root inside the `screenshots` directory.
 
 ## Installation
 
@@ -44,18 +43,26 @@ Add the `[cas_contact_form]` shortcode to a WordPress page or post.
 
 ## Development Environment
 
-* IDE: Visual Studio Code
-* Extensions: PHP Intelephense, ESLint, Prettier
-* Local environment: MAMP PRO
+- IDE: Visual Studio Code
+- Extensions: PHP Intelephense, ESLint, Prettier
+- Local environment: MAMP PRO
+- WordPress: local development installation
+- PHP: 8.3
+
+## Time Spent
+
+Total time spent: approximately 3 days.
+
+Development was split into setup and architecture, form flow and submission handling, admin/email functionality, QA, screenshots, and final documentation.
 
 ## AI Tools Usage
 
-The following AI tools were used during development:
+AI-assisted tools were used during development:
 
-- ChatGPT (GPT Plus) — architecture planning, debugging, and implementation guidance
-- Codex (VS Code) — code generation and development acceleration
+- ChatGPT (GPT Plus): architecture planning, debugging support, and implementation guidance
+- Codex (VS Code): code generation support, refactoring assistance, and documentation updates
 
-All generated code was reviewed, tested, and manually refined.
+All AI-assisted output was reviewed, tested, and manually refined before being included in the final plugin.
 
 ## Author
 
